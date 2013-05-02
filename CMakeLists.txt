@@ -5,6 +5,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 find_package(APR REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(LibSVN REQUIRED)
 
 set (standard "-std=c++11")
 set (warning "-pedantic -Wall -Wextra -Wshadow")

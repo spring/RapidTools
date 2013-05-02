@@ -22,5 +22,7 @@ add_executable (BuildRapid
 
 target_link_libraries (BuildRapid
 		${ZLIB_LIBRARIES}
+		${SVN_LIBRARIES}
+		${APR_LIBRARIES}
 	)
 
