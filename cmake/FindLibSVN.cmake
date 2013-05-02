@@ -3,9 +3,9 @@
 # - Find Apache Portable Runtime
 # Find the APR includes and libraries
 # This module defines
-#  SVN_INCLUDE_DIR and APRUTIL_INCLUDE_DIR, where to find apr.h, etc.
-#  SVN_LIBRARIES and APRUTIL_LIBRARIES, the libraries needed to use APR.
-#  SVN_FOUND If false, do not try to use APR.
+#  SVN_INCLUDE_DIRS where to find svn_client.h, etc.
+#  SVN_LIBRARIES the libraries needed to use SVN.
+#  SVN_FOUND If false, do not try to use SVN.
 # also defined, but not for general use are
 
 

@@ -2,6 +2,7 @@
 include_directories (
 		${APRUTIL_INCLUDE_DIR}
 		${ZLIB_INCLUDE_DIRS}
+		${SVN_INCLUDE_DIRS}
 	)
 
 add_executable (BuildRapid
