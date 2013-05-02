@@ -9,7 +9,7 @@
 # also defined, but not for general use are
 
 
-FIND_PATH(SVN_INCLUDE_DIR svn_client.h
+FIND_PATH(SVN_INCLUDE_DIRS svn_client.h
 /usr/local/include/subversion-1
 /usr/include/subversion-1
 )
