@@ -1,7 +1,8 @@
 language: cpp
 compiler:
   - clang
-  - gcc
+#  travis ci doesn't support c++11 (yet)
+#  - gcc
 before_script:
   - sudo apt-get install libsvn-dev
   - cmake .
