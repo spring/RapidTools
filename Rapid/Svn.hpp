@@ -27,9 +27,9 @@ class SvnT
 	svn_client_ctx_t * mContext;
 
 	public:
-	using SummarizeCallbackT = std::function<void (svn_client_diff_summarize_t const *)>;
-	using CatCallbackT = std::function<void (char const *, apr_size_t)>;
-	using LogCallbackT = std::function<void (svn_log_entry_t const *)>;
+	typedef std::function<void (svn_client_diff_summarize_t const *)> SummarizeCallbackT;
+	typedef std::function<void (char const *, apr_size_t)> CatCallbackT;
+	typedef std::function<void (svn_log_entry_t const *)> LogCallbackT;
 
 	SvnT();
 

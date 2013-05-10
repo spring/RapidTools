@@ -18,7 +18,7 @@ include_directories (
 	${ZLIB_INCLUDE_DIR}
 	.)
 
-set (standard "-std=c++11")
+set (standard "-std=c++0x")
 set (warning "-pedantic -Wall -Wextra -Wshadow")
 set (debug "-ggdb")
 set (release "-DNDEBUG -O3 -flto")

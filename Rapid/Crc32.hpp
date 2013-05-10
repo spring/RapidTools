@@ -4,7 +4,7 @@
 
 namespace Rapid {
 
-using ChecksumT = std::uint32_t;
+typedef std::uint32_t ChecksumT;
 
 class Crc32T
 {

@@ -30,7 +30,7 @@ void addZip(
 	Zip.iterateFiles([&](ZipFileT const & File)
 	{
 		PoolFileT PoolFile{Store};
-		File.cat([&](char const * Buffer, zip_uint64_t Length)
+		File.cat([&](char const * Buffer, std::size_t Length)
 		{
 			PoolFile.write(Buffer, Length);
 		});

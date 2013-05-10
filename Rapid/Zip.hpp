@@ -22,8 +22,8 @@ class ZipT
 	void iterateFiles(FunctorT Functor)
 	{
 		struct zip_stat Stat;
-		auto NumEntries = zip_get_num_entries(mZip, 0);
-		for (zip_uint64_t I = 0; I != NumEntries; ++I)
+		auto NumEntries = zip_get_num_files(mZip);
+		for (int I = 0; I != NumEntries; ++I)
 		{
 			auto Error = zip_stat_index(mZip, I, 0, &Stat);
 			if (Error != 0) throw std::runtime_error{"Error reading zip"};

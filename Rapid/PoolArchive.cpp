@@ -192,7 +192,7 @@ struct UserDataT
 	FileEntryT const & Entry;
 };
 
-zip_int64_t handleZip(void * State, void * Data, zip_uint64_t Length, enum zip_source_cmd Cmd)
+ssize_t handleZip(void * State, void * Data, std::size_t Length, enum zip_source_cmd Cmd)
 {
 	auto & UserData = *static_cast<UserDataT *>(State);
 
