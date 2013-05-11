@@ -83,12 +83,26 @@ void buildSvn(
 	BaseUrl += '/';
 	BaseUrl += ArchiveRoot;
 
+        // Parse commit message for the type of commit
+	svn_revnum_t RevisionNum = std::stoi(RevisionString);
+        CommitInfoT CommitInfo;
+	bool HasLog = false;
+        Svn.log(SvnUrl, ModsRoot, RevisionNum, [&](svn_log_entry_t const * Entry)
+        {
+                char const * Author;
+                char const * Date;
+                char const * Message;
+                svn_compat_log_revprops_out(&Author, &Date, &Message, Entry->revprops);
+                CommitInfo = extractVersion(Message, RevisionString);
+		HasLog = true;
+        });
+	if (!HasLog) throw std::runtime_error{"No log"};
+
 	// Initialize the store
 	StoreT Store{StorePath};
 	Store.init();
 
 	// Load the last proccessed revision
-	svn_revnum_t RevisionNum = std::stoi(RevisionString);
 	auto Last = LastT::load(Store, Prefix, BaseUrl);
 	std::string const * DiffUrl;
 	PoolArchiveT Archive{Store};
@@ -165,16 +179,6 @@ void buildSvn(
 		}
 	});
 	
-	// Parse commit message for the type of commit
-	CommitInfoT CommitInfo;
-	Svn.log(SvnUrl, ModsRoot, RevisionNum, [&](svn_log_entry_t const * Entry)
-	{
-		char const * Author;
-		char const * Date;
-		char const * Message;
-		svn_compat_log_revprops_out(&Author, &Date, &Message, Entry->revprops);
-		CommitInfo = extractVersion(Message, RevisionString);
-	});
 
 	// Add updated modinfo.lua
 	PoolFileT File{Store};
