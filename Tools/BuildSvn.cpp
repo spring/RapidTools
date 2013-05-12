@@ -148,9 +148,9 @@ void buildSvn(
 		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_file) {
 			std::cout << "D\t" << Diff->path << "\n";
 			Archive.remove(Diff->path);
-		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_dir) {
+		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_dir) { //directory deleted, do nothing
 			std::cout << "D\t" << Diff->path << "\n";
-			Archive.removePrefix(Diff->path);
+//			Archive.removePrefix(Diff->path);
 		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_normal && Diff->node_kind == svn_node_file) {
 			if (!Diff->prop_changed)
 			{
