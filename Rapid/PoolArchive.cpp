@@ -10,6 +10,7 @@
 #include <unordered_set>
 
 #include <zip.h>
+#include <assert.h>
 
 namespace Rapid {
 
@@ -112,6 +113,7 @@ ArchiveEntryT PoolArchiveT::save()
 
 void PoolArchiveT::add(std::string Name, FileEntryT const & Entry)
 {
+	assert(!Name.empty());
 	for (auto & Char : Name) Char = std::tolower(Char);
 	auto Pair = mEntries.insert({std::move(Name), Entry});
 	// Overwrite the old entry if it already existed
@@ -120,6 +122,7 @@ void PoolArchiveT::add(std::string Name, FileEntryT const & Entry)
 
 void PoolArchiveT::remove(std::string Name)
 {
+	assert(!Name.empty());
 	for (auto & Char : Name) Char = std::tolower(Char);
 	auto Iter = mEntries.find(Name);
 	auto End = mEntries.end();
@@ -130,6 +133,7 @@ void PoolArchiveT::remove(std::string Name)
 
 void PoolArchiveT::removePrefix(std::string Prefix)
 {
+	assert(!Prefix.empty());
 	for (auto & Char : Prefix) Char = std::tolower(Char);
 	auto Iter = mEntries.lower_bound(Prefix);
 	auto End = mEntries.end();
@@ -245,6 +249,7 @@ ssize_t handleZip(void * State, void * Data, std::size_t Length, enum zip_source
 
 void PoolArchiveT::makeZip(std::string const & Path)
 {
+	assert(!Path.empty());
 	int Error;
 	auto Zip = zip_open(Path.c_str(), ZIP_CREATE | ZIP_EXCL, &Error);
 	if (Zip == nullptr) throw std::runtime_error{"Unable to create zip"};
