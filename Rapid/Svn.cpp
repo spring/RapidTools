@@ -88,7 +88,7 @@ void SvnT::summarize(
 		mContext,
 		Pool.get());
 
-	if (Error != nullptr) throw std::runtime_error{Error->message};
+	if (Error != nullptr) throw std::runtime_error{"SvnT::summarize(): "+std::string(Error->message)};
 }
 
 namespace {
@@ -131,7 +131,7 @@ void SvnT::cat(
 		mContext,
 		Pool.get());
 
-	if (Error != nullptr) throw std::runtime_error{Error->message};
+	if (Error != nullptr) throw std::runtime_error{"Error: SvnT::cat() " + std::string(Error->message)};
 }
 
 
@@ -182,7 +182,7 @@ void SvnT::log(
 		mContext,
 		Pool.get());
 
-	if (Error != nullptr) throw std::runtime_error{Error->message};
+	if (Error != nullptr) throw std::runtime_error{"SvnT::log(): " + std::string(Error->message)};
 }
 
 std::string SvnT::readFile(std::string const & Path, svn_revnum_t RevisionNum)
