@@ -69,22 +69,23 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 
 void buildSvn(
 	const std::string& SvnUrl,
-	const std::string& ModsRoot,
-	const std::string& ArchiveRoot,
+	const std::string& ArchiveRoot, //relative path to the "root" of the ssd (where modinfo.lua is stored)
+	const std::string& ModinfoFilename, //filename of modinfo.lua (could be mapinfo.lua)
 	const std::string& StorePath,
 	const std::string& RevisionString,
 	const std::string& Prefix)
 {
 	SvnT Svn;
 
-	// Full URL of the archive's root
-	const std::string BaseUrl = SvnUrl + '/' + ArchiveRoot;
+	// Absolute url of the archive's root
+	const std::string AbsArchiveRoot = SvnUrl + '/' + ArchiveRoot;
+	const std::string AbsModinfoPath = AbsArchiveRoot + '/' + ModinfoFilename;
 
 	// Parse commit message for the type of commit
 	svn_revnum_t RevisionNum = std::stoi(RevisionString);
 	CommitInfoT CommitInfo;
 	bool HasLog = false;
-	Svn.log(SvnUrl, ModsRoot, RevisionNum, [&](svn_log_entry_t const * Entry)
+	Svn.log(SvnUrl, ArchiveRoot, RevisionNum, [&](svn_log_entry_t const * Entry)
 	{
 		char const * Author;
 		char const * Date;
@@ -100,27 +101,27 @@ void buildSvn(
 	Store.init();
 
 	// Load the last proccessed revision
-	auto Last = LastT::load(Store, Prefix, BaseUrl);
-	std::string const * DiffUrl;
+	auto Last = LastT::load(Store, Prefix, AbsModinfoPath);
+//	std::string const * DiffUrl;
 	PoolArchiveT Archive{Store};
 	if (Last.RevisionNum != 0)
 	{
 		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " <<
 			RevisionNum << "\n";
 		Archive.load(Last.Digest);
-		DiffUrl = &BaseUrl;
+		//DiffUrl = &AbsModinfoPath;
 	}
 	else
 	{
 		std::cout << "Unable to perform incremental an update\n";
-		DiffUrl = &SvnUrl;
+		//DiffUrl = &SvnUrl;
 	}
 
 	// Helper function used for adds/modifications
 	auto add = [&](svn_client_diff_summarize_t const * Diff)
 	{
 		PoolFileT File{Store};
-		const std::string Path = BaseUrl + "/" + Diff->path;
+		const std::string Path = SvnUrl + "/" + Diff->path;
 		Svn.cat(Path, RevisionNum, [&](char const * Data, apr_size_t Length)
 		{
 			File.write(Data, Length);
@@ -130,7 +131,7 @@ void buildSvn(
 	};
 
 	// Ask svn for a diff from the last proccessed version (or 0 if none exists)
-	Svn.summarize(*DiffUrl, Last.RevisionNum, BaseUrl, RevisionNum,
+	Svn.summarize(AbsArchiveRoot, Last.RevisionNum, AbsArchiveRoot, RevisionNum,
 		[&](svn_client_diff_summarize_t const * Diff)
 	{
 		if (
@@ -176,9 +177,9 @@ void buildSvn(
 
 	// Add updated modinfo.lua
 	PoolFileT File{Store};
-	auto Buffer = Svn.readFile(BaseUrl + "/modinfo.lua", RevisionNum);
+	auto Buffer = Svn.readFile(AbsModinfoPath, RevisionNum);
 	replaceVersion(Buffer, CommitInfo.Version, [&](char const * Data, std::size_t Length)
-	{		
+	{
 		File.write(Data, Length);
 	});
 	auto FileEntry = File.close();
@@ -202,7 +203,7 @@ void buildSvn(
 	// Update last proccesed revision
 	Last.Digest = ArchiveEntry.Digest;
 	Last.RevisionNum = RevisionNum;
-	LastT::save(Last, Store, Prefix, BaseUrl);
+	LastT::save(Last, Store, Prefix, AbsModinfoPath);
 
 	// Create zip if needed
 	if (CommitInfo.MakeZip)
@@ -225,7 +226,7 @@ int main(int argc, char const * const * argv, char const * const * env)
 	if (argc != 7)
 	{
 		std::cerr << "Usage: " << argv[0] <<
-			" <SVN URL> <Mods Root> <Archive Root> <Store Path> <Revision Number> <Rapid Prefix>\n";
+			" <SVN URL> <Mods Root> <Archive Root> <filename of modinfo.lua> <Revision Number> <Rapid Prefix>\n";
 		return 1;
 	}
 
