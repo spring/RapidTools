@@ -28,13 +28,13 @@ void touchDirectory(std::string const & Path)
 		if (errno == ENOENT)
 		{
 			Error = mkdir(Path.c_str(), 0755);
-			if (Error != 0) throw std::runtime_error{"Error creating directory"};
+			if (Error != 0) throw std::runtime_error{"Error creating directory: " + Path};
 			return;
 		}
-		else throw std::runtime_error{"Error creating directory"};
+		else throw std::runtime_error{"Error creating directory: " + Path};
 	}
 
-	if (!S_ISDIR(Stats.st_mode)) throw std::runtime_error{"Error creating directory: is a file"};
+	if (!S_ISDIR(Stats.st_mode)) throw std::runtime_error{"Error creating directory: is a file:" + Path};
 }
 
 }

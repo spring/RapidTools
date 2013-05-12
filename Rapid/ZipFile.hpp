@@ -13,7 +13,7 @@ class ZipFileT
 	zip_file * mFile;
 
 	public:
-	ZipFileT(std::string Name, zip_file * File);
+	ZipFileT(const std::string& Name, zip_file * File);
 	~ZipFileT();
 
 	std::string const & getName() const;
