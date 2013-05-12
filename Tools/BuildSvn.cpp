@@ -68,20 +68,17 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 }
 
 void buildSvn(
-	std::string SvnUrl,
-	std::string ModsRoot,
-	std::string ArchiveRoot,
-	std::string StorePath,
-	std::string RevisionString,
-	std::string Prefix)
+	const std::string& SvnUrl,
+	const std::string& ModsRoot,
+	const std::string& ArchiveRoot,
+	const std::string& StorePath,
+	const std::string& RevisionString,
+	const std::string& Prefix)
 {
 	SvnT Svn;
 
 	// Full URL of the archive's root
-	std::string BaseUrl;
-	BaseUrl += SvnUrl;
-	BaseUrl += '/';
-	BaseUrl += ArchiveRoot;
+	const std::string BaseUrl = SvnUrl + '/' + ArchiveRoot;
 
 	// Parse commit message for the type of commit
 	svn_revnum_t RevisionNum = std::stoi(RevisionString);
@@ -123,10 +120,7 @@ void buildSvn(
 	auto add = [&](svn_client_diff_summarize_t const * Diff)
 	{
 		PoolFileT File{Store};
-		std::string Path;
-		Path += BaseUrl;
-		Path += "/";
-		Path += Diff->path;
+		const std::string Path = BaseUrl + "/" + Diff->path;
 		Svn.cat(Path, RevisionNum, [&](char const * Data, apr_size_t Length)
 		{
 			File.write(Data, Length);
