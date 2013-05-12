@@ -13,6 +13,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <assert.h>
 
 namespace {
 
@@ -67,6 +68,16 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 	return {"test", "test-" + RevisionString, false};
 }
 
+
+//helper function, removes prefix from string if exists
+static std::string removePrefix(const std::string& str, const std::string& prefix) {
+	assert(!str.empty());
+	if (!prefix.empty() && (str.find(prefix) == 0)) { //FIXME: ugly hack, this should be used in all functions
+		return str.substr(prefix.length());
+	}
+	return str;
+}
+
 void buildSvn(
 	const std::string& SvnUrl,
 	const std::string& ArchiveRoot, //relative path to the "root" of the ssd (where modinfo.lua is stored)
@@ -104,15 +115,11 @@ void buildSvn(
 	auto Last = LastT::load(Store, Prefix, AbsModinfoPath);
 //	std::string const * DiffUrl;
 	PoolArchiveT Archive{Store};
-	if (Last.RevisionNum != 0)
-	{
-		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " <<
-			RevisionNum << "\n";
+	if (Last.RevisionNum != 0) {
+		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " << RevisionNum << "\n";
 		Archive.load(Last.Digest);
 		//DiffUrl = &AbsModinfoPath;
-	}
-	else
-	{
+	} else {
 		std::cout << "Unable to perform incremental an update\n";
 		//DiffUrl = &SvnUrl;
 	}
@@ -127,45 +134,27 @@ void buildSvn(
 			File.write(Data, Length);
 		});
 		auto FileEntry = File.close();
-		Archive.add(Diff->path, FileEntry);
+		const std::string relpath = removePrefix(Diff->path, ArchiveRoot + '/') ;
+		Archive.add( relpath , FileEntry);
 	};
 
 	// Ask svn for a diff from the last proccessed version (or 0 if none exists)
 	Svn.summarize(AbsArchiveRoot, Last.RevisionNum, AbsArchiveRoot, RevisionNum,
 		[&](svn_client_diff_summarize_t const * Diff)
 	{
-		if (
-			Diff->summarize_kind == svn_client_diff_summarize_kind_added &&
-			Diff->node_kind == svn_node_file)
-		{
+		if (Diff->summarize_kind == svn_client_diff_summarize_kind_added && Diff->node_kind == svn_node_file) {
 			std::cout << "A\t" << Diff->path << "\n";
 			add(Diff);
-		}
-		else if (
-			Diff->summarize_kind == svn_client_diff_summarize_kind_modified &&
-			Diff->node_kind == svn_node_file)
-		{
+		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_modified && Diff->node_kind == svn_node_file) {
 			std::cout << "M\t" << Diff->path << "\n";
 			add(Diff);
-		}
-		else if (
-			Diff->summarize_kind == svn_client_diff_summarize_kind_deleted &&
-			Diff->node_kind == svn_node_file)
-		{
+		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_file) {
 			std::cout << "D\t" << Diff->path << "\n";
 			Archive.remove(Diff->path);
-		}
-		else if (
-			Diff->summarize_kind == svn_client_diff_summarize_kind_deleted &&
-			Diff->node_kind == svn_node_dir)
-		{
+		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_dir) {
 			std::cout << "D\t" << Diff->path << "\n";
 			Archive.removePrefix(Diff->path);
-		}
-		else if (
-			Diff->summarize_kind == svn_client_diff_summarize_kind_normal &&
-			Diff->node_kind == svn_node_file)
-		{
+		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_normal && Diff->node_kind == svn_node_file) {
 			if (!Diff->prop_changed)
 			{
 				std::cout << "P\t" << Diff->path << "\n";
@@ -173,7 +162,7 @@ void buildSvn(
 			}
 		}
 	});
-	
+
 
 	// Add updated modinfo.lua
 	PoolFileT File{Store};
@@ -189,15 +178,10 @@ void buildSvn(
 	auto ArchiveEntry = Archive.save();
 	VersionsT Versions{Store};
 	Versions.load();
-	std::string Tag;
-	Tag = Prefix;
-	Tag += ':';
-	Tag += CommitInfo.Branch;
+	const std::string Tag = Prefix + ':' + CommitInfo.Branch;
 	Versions.add(Tag, ArchiveEntry);
-	Tag = Prefix;
-	Tag += ":revision:";
-	Tag += RevisionString;
-	Versions.add(Tag, ArchiveEntry);
+	const std::string Tag2 = Prefix + ":revision:" + RevisionString;
+	Versions.add(Tag2, ArchiveEntry);
 	Versions.save();
 
 	// Update last proccesed revision
