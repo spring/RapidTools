@@ -113,28 +113,25 @@ void buildSvn(
 
 	// Load the last proccessed revision
 	auto Last = LastT::load(Store, Prefix, AbsModinfoPath);
-//	std::string const * DiffUrl;
 	PoolArchiveT Archive{Store};
 	if (Last.RevisionNum != 0) {
 		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " << RevisionNum << "\n";
 		Archive.load(Last.Digest);
-		//DiffUrl = &AbsModinfoPath;
 	} else {
 		std::cout << "Unable to perform incremental an update\n";
-		//DiffUrl = &SvnUrl;
 	}
 
 	// Helper function used for adds/modifications
 	auto add = [&](svn_client_diff_summarize_t const * Diff)
 	{
 		PoolFileT File{Store};
-		const std::string Path = SvnUrl + "/" + Diff->path;
+		const std::string Path = AbsArchiveRoot + "/" + removePrefix(Diff->path, ArchiveRoot + '/');
 		Svn.cat(Path, RevisionNum, [&](char const * Data, apr_size_t Length)
 		{
 			File.write(Data, Length);
 		});
 		auto FileEntry = File.close();
-		const std::string relpath = removePrefix(Diff->path, ArchiveRoot + '/') ;
+		const std::string relpath = removePrefix(Diff->path, ArchiveRoot + '/');
 		Archive.add( relpath , FileEntry);
 	};
 
