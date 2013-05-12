@@ -76,9 +76,9 @@ void SvnT::summarize(
 	DestRevision->value.number = DestinationRevisionNum;
 
 	auto Error = svn_client_diff_summarize2(
-		SourcePath.c_str(),
+		svn_path_uri_encode(SourcePath.c_str(), Pool.get()),
 		SourceRevision,
-		DestinationPath.c_str(),
+		svn_path_uri_encode(DestinationPath.c_str(), Pool.get()),
 		DestRevision,
 		svn_depth_infinity,
 		true,
@@ -125,7 +125,7 @@ void SvnT::cat(
 
 	Error = svn_client_cat2(
 		Stream,
-		Path.c_str(),
+		svn_path_uri_encode(Path.c_str(), Pool.get()),
 		Revision,
 		Revision,
 		mContext,
@@ -165,8 +165,8 @@ void SvnT::log(
 	Peg->kind = svn_opt_revision_unspecified;
 
 	auto Targets = apr_array_make(Pool.get(), 2, sizeof(char const *));
-	APR_ARRAY_PUSH(Targets, char const *) = Root.c_str();
-	APR_ARRAY_PUSH(Targets, char const *) = Path.c_str();
+	APR_ARRAY_PUSH(Targets, char const *) = svn_path_uri_encode(Root.c_str(), Pool.get());
+	APR_ARRAY_PUSH(Targets, char const *) = svn_path_uri_encode(Path.c_str(), Pool.get());
 
 	auto Error = svn_client_log5(
 		Targets,

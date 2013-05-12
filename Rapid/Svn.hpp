@@ -5,6 +5,7 @@
 
 #include <svn_client.h>
 #include <svn_compat.h>
+#include <svn_path.h>
 
 namespace Rapid {
 
