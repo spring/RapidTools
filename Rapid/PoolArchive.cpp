@@ -124,7 +124,7 @@ void PoolArchiveT::remove(std::string Name)
 	auto Iter = mEntries.find(Name);
 	auto End = mEntries.end();
 
-	if (Iter == End) throw std::runtime_error{"Attempt to remove non-existent key"};
+	if (Iter == End) throw std::runtime_error{"PoolArchiveT::remove(): Attempt to remove non-existent key: " + Name};
 	mEntries.erase(Iter);
 }
 
@@ -225,7 +225,7 @@ ssize_t handleZip(void * State, void * Data, std::size_t Length, enum zip_source
 	} break;
 
 	case ZIP_SOURCE_ERROR:
-	{		
+	{
 		return sizeof(int) * 2;
 	} break;
 
