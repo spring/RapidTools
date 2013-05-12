@@ -7,3 +7,16 @@ Makefile
 CMakeFiles
 cmake_install.cmake
 CMakeLists.txt.user
+# executables / libs
+/Tools/AddZip
+/Tools/BuildSvn
+/Tools/MakeZip
+/Tools/Streamer
+/Rapid/libRapid.a
+# codeblocks project file
+/RapidTools.cbp
+/RapidTools.layout*
+# ninja files
+/rules.ninja
+/build.ninja
+/.ninja_log
