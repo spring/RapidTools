@@ -16,7 +16,8 @@ include_directories (
 	${SVN_INCLUDE_DIR}
 	${ZIP_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIR}
-	.)
+	.
+)
 
 set (standard "-std=c++0x")
 set (warning "-pedantic -Wall -Wextra -Wshadow")
