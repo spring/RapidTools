@@ -2,7 +2,7 @@
 
 SVNROOT=$(pwd)/test
 PACKAGES=$(pwd)/packages
-BIN=$(pwd)/../Tools
+BIN=$(readlink -f $(pwd)/../Tools)
 #URL=http://spring-features.googlecode.com/svn/trunk
 URL=http://xta-springrts.googlecode.com/svn/trunk/
 MODINFO=modinfo.lua
@@ -21,7 +21,7 @@ echo 'REVISION="$2"'
 echo "BIN=$BIN"
 echo "echo \$BIN/BuildSvn file://\$REPO $LOGPATH $MODINFO $PACKAGES \$REVISION $TAG >> $SVNROOT/sync.log 2>&1"
 echo "\$BIN/BuildSvn file://\$REPO $LOGPATH $MODINFO $PACKAGES \$REVISION $TAG >> $SVNROOT/sync.log 2>&1"
-echo '#$ROOT/bin/log.py $REPO $REVISION <channel1> <channel2>'
+echo "#\$BIN/../Scripts/log.py \$REPO \$REVISION <channel1> <channel2>"
 echo 'exit $?'
 ) > $SVNROOT/hooks/post-commit
 chmod +x $SVNROOT/hooks/post-commit
