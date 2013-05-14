@@ -1,5 +1,4 @@
 #!/bin/sh
-set +v
 
 SVNROOT=$(pwd)/test
 PACKAGES=$(pwd)/packages
@@ -16,13 +15,14 @@ svnadmin create test
 
  (
 echo "#!/bin/sh"
+echo 'set -e'
 echo 'REPO="$1"'
 echo 'REVISION="$2"'
 echo "BIN=$BIN"
 echo "echo \$BIN/BuildSvn file://\$REPO $LOGPATH $MODINFO $PACKAGES \$REVISION $TAG >> $SVNROOT/sync.log 2>&1"
 echo "\$BIN/BuildSvn file://\$REPO $LOGPATH $MODINFO $PACKAGES \$REVISION $TAG >> $SVNROOT/sync.log 2>&1"
 echo '#$ROOT/bin/log.py $REPO $REVISION <channel1> <channel2>'
-echo 'exit $#'
+echo 'exit $?'
 ) > $SVNROOT/hooks/post-commit
 chmod +x $SVNROOT/hooks/post-commit
 
