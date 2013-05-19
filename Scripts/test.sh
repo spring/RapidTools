@@ -11,7 +11,7 @@ LOGPATH=trunk
 #TAG=spring-features
 TAG=xta
 
-svnadmin create test
+svnadmin create "$SVNROOT"
 
  (
 echo "#!/bin/sh"
