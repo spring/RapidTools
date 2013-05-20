@@ -130,7 +130,7 @@ std::string StoreT::getLastPath(std::string const & Prefix, std::string const & 
 	std::string Path;
 	Path += mRoot;
 	Path += "/last/";
-	Path.append(Hexed, Hexed + 32);
+	Path += Prefix;
 	Path += ".gz";
 	return Path;
 }
