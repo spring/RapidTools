@@ -13,10 +13,12 @@ CMakeLists.txt.user
 /Tools/MakeZip
 /Tools/Streamer
 /Rapid/libRapid.a
+# python cache files
+/Scripts/*.pyc
 # codeblocks project file
 /RapidTools.cbp
 /RapidTools.layout*
 # ninja files
 /rules.ninja
 /build.ninja
-/.ninja_log
+/
