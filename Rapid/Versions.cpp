@@ -121,6 +121,7 @@ void VersionsT::save()
 		Out.write(Entry.Name.data(), Entry.Name.size());
 		Out.write('\n');
 	}
+	Out.close();
 }
 
 void VersionsT::add(std::string const & Tag, ArchiveEntryT const & Entry)
