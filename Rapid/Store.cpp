@@ -119,14 +119,6 @@ std::string StoreT::getVersionsPath() const
 
 std::string StoreT::getLastPath(std::string const & Prefix, std::string const & Base) const
 {
-	Md5T Md5;
-	Md5.update(Prefix.data(), Prefix.size());
-	Md5.update(Base.data(), Base.size());
-	auto Digest = Md5.final();
-
-	char Hexed[32];
-	Hex::encode(Hexed, Digest.Buffer, 16);
-
 	std::string Path;
 	Path += mRoot;
 	Path += "/last/";
