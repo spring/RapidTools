@@ -118,7 +118,7 @@ void buildSvn(
 		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " << RevisionNum << "\n";
 		Archive.load(Last.Digest);
 	} else {
-		Last.RevisionNum = 0;
+		Last.RevisionNum = 1;
 		std::cout << "Unable to perform incremental an update\n";
 	}
 
