@@ -114,10 +114,11 @@ void buildSvn(
 	// Load the last proccessed revision
 	auto Last = LastT::load(Store, Prefix, AbsModinfoPath);
 	PoolArchiveT Archive{Store};
-	if ((Last.RevisionNum != 0) && (RevisionNum > Last.RevisionNum))  {
+	if ((Last.RevisionNum > 0) && (RevisionNum > Last.RevisionNum))  {
 		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " << RevisionNum << "\n";
 		Archive.load(Last.Digest);
 	} else {
+		Last.RevisionNum = 0;
 		std::cout << "Unable to perform incremental an update\n";
 	}
 
