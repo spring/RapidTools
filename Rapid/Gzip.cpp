@@ -57,14 +57,17 @@ bool GzipT::readMaybe(void * Buffer, unsigned Length)
 
 void GzipT::write(void const * Buffer, unsigned Length)
 {
+
+	if (Length==0)
+		return;
 	auto Error = gzwrite(mFile, Buffer, Length);
-	if (Error == 0) throw std::runtime_error{"Error writing gzip"};
+	if (Error == 0) throw std::runtime_error{"Error writing gzip buffer"};
 }
 
 void GzipT::write(char Char)
 {
 	auto Error = gzputc(mFile, Char);
-	if (Error == 0) throw std::runtime_error{"Error writing gzip"};
+	if (Error == 0) throw std::runtime_error{"Error writing gzip char"};
 }
 
 std::string GzipT::readFile(std::string const & Path)
