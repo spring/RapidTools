@@ -127,7 +127,10 @@ void PoolArchiveT::remove(std::string Name)
 	auto Iter = mEntries.find(Name);
 	auto End = mEntries.end();
 
-	if (Iter == End) throw std::runtime_error{"PoolArchiveT::remove(): Attempt to remove non-existent key: " + Name};
+	if (Iter == End) {
+		//throw std::runtime_error{"PoolArchiveT::remove(): Attempt to remove non-existent key: " + Name};
+		return;
+	}
 	mEntries.erase(Iter);
 }
 
