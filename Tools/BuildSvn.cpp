@@ -118,8 +118,12 @@ void buildSvn(
 		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " << RevisionNum << "\n";
 		Archive.load(Last.Digest);
 	} else {
-		Last.RevisionNum = 1;
+		Last.RevisionNum = 0;
 		std::cout << "Unable to perform incremental an update\n";
+	}
+	std::string SourceDiff = AbsArchiveRoot;
+	if (Last.RevisionNum == 0) {
+		SourceDiff = SvnUrl;
 	}
 
 	// Helper function used for adds/modifications
@@ -137,7 +141,7 @@ void buildSvn(
 	};
 
 	// Ask svn for a diff from the last proccessed version (or 0 if none exists)
-	Svn.summarize(AbsArchiveRoot, Last.RevisionNum, AbsArchiveRoot, RevisionNum,
+	Svn.summarize(SourceDiff, Last.RevisionNum, AbsArchiveRoot, RevisionNum,
 		[&](svn_client_diff_summarize_t const * Diff)
 	{
 		if (Diff->summarize_kind == svn_client_diff_summarize_kind_added && Diff->node_kind == svn_node_file) {

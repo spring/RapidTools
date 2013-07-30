@@ -70,9 +70,11 @@ void SvnT::summarize(
 
 	auto SourceRevision = allocPool<svn_opt_revision_t>(Pool.get());
 	auto DestRevision = allocPool<svn_opt_revision_t>(Pool.get());
+
 	SourceRevision->kind = svn_opt_revision_number;
-	DestRevision->kind = svn_opt_revision_number;
 	SourceRevision->value.number = SourceRevisionNum;
+
+	DestRevision->kind = svn_opt_revision_number;
 	DestRevision->value.number = DestinationRevisionNum;
 
 	auto Error = svn_client_diff_summarize2(
