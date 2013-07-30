@@ -2,7 +2,7 @@
 
 namespace Rapid {
 
-ZipFileT::ZipFileT(const std::string& Name, zip_file * File)
+ZipFileT::ZipFileT(std::string Name, zip_file * File)
 :
 	mName{std::move(Name)},
 	mFile{File}
