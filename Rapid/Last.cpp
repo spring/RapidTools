@@ -8,22 +8,21 @@
 
 namespace Rapid {
 
-void LastT::save(LastT const & Last, StoreT & Store, std::string const & Prefix,
-	std::string const & Base)
+void LastT::save(LastT const & Last, StoreT & Store, std::string const & Prefix)
 {
 	TempFileT Temp{Store};
 	unsigned char Buffer[4];
 	Marshal::packLittle(Last.RevisionNum, Buffer);
 	Temp.getOut().write(Buffer, 4);
 	Temp.getOut().write(Last.Digest.Buffer, 16);
-	Temp.commit(Store.getLastPath(Prefix, Base));
+	Temp.commit(Store.getLastPath(Prefix));
 }
 
-LastT LastT::load(StoreT & Store, std::string const & Prefix, std::string const & Base)
+LastT LastT::load(StoreT & Store, std::string const & Prefix)
 {
 	LastT Last;
 
-	auto Path = Store.getLastPath(Prefix, Base);
+	auto Path = Store.getLastPath(Prefix);
 
 	struct stat Stats;
 	auto Error = stat(Path.c_str(), &Stats);

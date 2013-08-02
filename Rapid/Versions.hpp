@@ -23,6 +23,7 @@ class VersionsT
 	void load();
 	void save();
 	void add(std::string const & Tag, ArchiveEntryT const & Entry);
+	void updateDigest();
 	ArchiveEntryT const & findTag(std::string const & Tag);
 };
 

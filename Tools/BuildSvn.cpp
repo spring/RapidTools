@@ -112,7 +112,7 @@ void buildSvn(
 	Store.init();
 
 	// Load the last proccessed revision
-	auto Last = LastT::load(Store, Prefix, AbsModinfoPath);
+	auto Last = LastT::load(Store, Prefix);
 	PoolArchiveT Archive{Store};
 	if ((Last.RevisionNum > 0) && (RevisionNum > Last.RevisionNum))  {
 		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " << RevisionNum << "\n";
@@ -189,7 +189,7 @@ void buildSvn(
 	// Update last proccesed revision
 	Last.Digest = ArchiveEntry.Digest;
 	Last.RevisionNum = RevisionNum;
-	LastT::save(Last, Store, Prefix, AbsModinfoPath);
+	LastT::save(Last, Store, Prefix);
 
 	// Create zip if needed
 	if (CommitInfo.MakeZip)

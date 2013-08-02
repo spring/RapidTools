@@ -117,7 +117,7 @@ std::string StoreT::getVersionsPath() const
 	return Path;
 }
 
-std::string StoreT::getLastPath(std::string const & Prefix, std::string const & Base) const
+std::string StoreT::getLastPath(std::string const & Prefix) const
 {
 	std::string Path;
 	Path += mRoot;
@@ -142,6 +142,13 @@ std::string StoreT::getBuildPath(std::string const & Prefix, std::string Version
 	Path += '-';
 	Path += Version;
 	Path += ".sdz";
+	return Path;
+}
+
+std::string StoreT::getDigestPath() const {
+	std::string Path;
+	Path += mRoot;
+	Path += "versions.digest";
 	return Path;
 }
 
