@@ -148,7 +148,7 @@ std::string StoreT::getBuildPath(std::string const & Prefix, std::string Version
 std::string StoreT::getDigestPath() const {
 	std::string Path;
 	Path += mRoot;
-	Path += "versions.digest";
+	Path += "/versions.digest";
 	return Path;
 }
 
