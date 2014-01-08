@@ -11,7 +11,15 @@ if len(sys.argv)<2:
 
 # comment out to disable
 #sys.exit(1)
-import passwords
+try:
+	import passwords
+	username = passwords.username
+	password = passwords.username
+except:
+	env = os.environ
+	username = os.environ['LOBBY_USERNAME']
+	password = os.environ['LOBBY_PASSWORD']
+
 
 repo = sys.argv[1]
 revision = sys.argv[2]
@@ -36,7 +44,7 @@ def createTemplate(str):
 template = createTemplate("%s commited revision %s:\n%s" %(author, revision, log))
 
 
-buf = 'LOGIN ' + passwords.username + ' ' + passwords.password + ' 0 * TASClient 0.33\t0\tcl sp\n'
+buf = 'LOGIN ' + username + ' ' + password + ' 0 * TASClient 0.33\t0\tcl sp\n'
 for channel in channels:
 	buf += template.replace("$CHANNEL$", channel)
 buf += "EXIT Thanks for using rapid! https://github.com/spring/RapidTools\n"
