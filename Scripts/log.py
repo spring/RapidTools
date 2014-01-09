@@ -34,18 +34,20 @@ log = os.popen('svnlook log -r "%s" "%s"' % (revision, repo)).read().strip()
 #changed = os.popen('svnlook changed -r "%s" "%s"' % (revision, repo)).read().strip()
 def prettyLog(lines):
 	pretty = ""
+	lines = lines.split('\n')
 	for line in lines:
-		pretty += "    %s" %(str(line).strip())
+		if line:
+			pretty += "    %s\n" %(str(line).strip())
+	return pretty
 
+print(log)
 log = prettyLog(log)
 
 def createTemplate(str):
 	lines = str.split('\n')
 	template = "JOIN $CHANNEL$\n"
 	for line in lines:
-		line = line.strip()
-		if len(line) > 0:
-			template += "SAY $CHANNEL$ " + line + "\n"
+		template += "SAY $CHANNEL$ " + line + "\n"
 	return template
 
 template = createTemplate("%s commited revision %s:\n%s" %(author, revision, log))
