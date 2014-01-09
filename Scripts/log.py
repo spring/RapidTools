@@ -38,7 +38,7 @@ def createTemplate(str):
 	for line in lines:
 		line = line.strip()
 		if len(line) > 0:
-			template += "SAY $CHANNEL$ " + line + "\n"
+			template += "SAY $CHANNEL$     " + line + "\n"
 	return template
 
 template = createTemplate("%s commited revision %s:\n%s" %(author, revision, log))
@@ -50,7 +50,8 @@ for channel in channels:
 buf += "EXIT Thanks for using rapid! https://github.com/spring/RapidTools\n"
 
 socket = socket.socket()
-socket.settimeout(5)
+socket.setblocking(1)
+socket.settimeout(20)
 socket.connect(('lobby.springrts.com', 8200))
 socket.sendall(buf)
 socket.close()
