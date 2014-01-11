@@ -59,9 +59,10 @@ for channel in channels:
 buf += "EXIT Thanks for using rapid! https://github.com/spring/RapidTools\n"
 
 socket = socket.socket()
-socket.setblocking(1)
-socket.settimeout(20)
+socket.settimeout(2.0)
 socket.connect(('lobby.springrts.com', 8200))
 socket.sendall(buf)
+
+time.sleep(0.5)
 socket.close()
 
