@@ -9,16 +9,13 @@ if len(sys.argv)<2:
 	print("Usage: %s <repo> <revision> <channel1> <channel2>" %(sys.argv[0]))
 	sys.exit(1)
 
+
 # comment out to disable
 #sys.exit(1)
-try:
-	import passwords
-	username = passwords.username
-	password = passwords.username
-except:
-	env = os.environ
-	username = os.environ['LOBBY_USERNAME']
-	password = os.environ['LOBBY_PASSWORD']
+import imp
+passwords = imp.load_source("passwords", os.path.join(os.path.dirname(__file__), "passwords.py"))
+username = passwords.username
+password = passwords.password
 
 
 repo = sys.argv[1]
@@ -40,7 +37,6 @@ def prettyLog(lines):
 			pretty += "    %s\n" %(str(line).strip())
 	return pretty
 
-print(log)
 log = prettyLog(log)
 
 def createTemplate(str):
