@@ -78,6 +78,33 @@ static std::string removePrefix(const std::string& str, const std::string& prefi
 	return str;
 }
 
+#ifdef _WIN32
+	static const char sep = '\\';
+#else
+	static const char sep = '/';
+#endif
+
+//remove sep at the end of path if exist
+static std::string cleanPath(const std::string& path)
+{
+	if (path[path.size()-1] == sep) { // make path1 without ending sep
+		return path.substr(0, path.size()-1);
+	}
+	return path;
+}
+
+//joins two paths respecting slashes to avoid duplicate slashes
+static std::string joinPath(const std::string& path1, const std::string& path2)
+{
+	if (cleanPath(path2).empty())
+		return cleanPath(path1);
+	std::string res = cleanPath(path1);
+	res += sep;
+	res += cleanPath(path2);
+	return res;
+}
+
+
 void buildSvn(
 	const std::string& SvnUrl,
 	const std::string& ArchiveRoot, //relative path to the "root" of the ssd (where modinfo.lua is stored)
@@ -89,14 +116,14 @@ void buildSvn(
 	SvnT Svn;
 
 	// Absolute url of the archive's root
-	const std::string AbsArchiveRoot = SvnUrl + '/' + ArchiveRoot;
-	const std::string AbsModinfoPath = AbsArchiveRoot + '/' + ModinfoFilename;
+	const std::string AbsArchiveRoot = joinPath(SvnUrl, ArchiveRoot);
+	const std::string AbsModinfoPath = joinPath(AbsArchiveRoot, ModinfoFilename);
 
 	// Parse commit message for the type of commit
 	svn_revnum_t RevisionNum = std::stoi(RevisionString);
 	CommitInfoT CommitInfo;
 	bool HasLog = false;
-	Svn.log(SvnUrl, ArchiveRoot, RevisionNum, [&](svn_log_entry_t const * Entry)
+	Svn.log(SvnUrl, cleanPath(ArchiveRoot), RevisionNum, [&](svn_log_entry_t const * Entry)
 	{
 		char const * Author;
 		char const * Date;
