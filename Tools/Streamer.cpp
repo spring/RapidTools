@@ -100,14 +100,14 @@ int main(int argc, char const * const * argv, char const * const * env)
 	auto DocumentRoot = getenv("DOCUMENT_ROOT");
 	auto QueryString = getenv("QUERY_STRING");
 
-	if (
-		argc != 1 ||
-		DocumentRoot == nullptr ||
-		QueryString == nullptr)
+	if ( DocumentRoot == nullptr ) {
+		std::cerr << "DOCUMENT_ROOT not set\n";
+		return 1;
+	}
+
+	if ( QueryString == nullptr )
 	{
-		std::cerr << "Usage: " << argv[0] << "\n";
-		std::cerr << "Expects environment variables DOCUMENT_ROOT and QUERY_STRING\n";
-		std::cerr << "Expects a gziped bitarray as stdin\n";
+		std::cerr << "QUERY_STRING isn't set\n";
 		return 1;
 	}
 
