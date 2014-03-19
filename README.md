@@ -1,5 +1,6 @@
+For docs, please see the wiki page:
 
-http://springrts.com/wiki/Rapid
+http://springrts.com/wiki/RapidTools
 
 # License
 
