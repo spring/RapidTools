@@ -6,11 +6,14 @@ add_library (Rapid
 	Gzip.cpp
 	Hex.cpp
 	Last.cpp
+	LastGit.cpp
 	Lua.cpp
 	Marshal.cpp
 	Md5.cpp
+	Optional.cpp
 	PoolArchive.cpp
 	PoolFile.cpp
+	ScopeGuard.cpp
 	Store.cpp
 	Svn.cpp
 	TempFile.cpp
@@ -21,6 +24,7 @@ add_library (Rapid
 target_link_libraries (Rapid
 	${APR_LIBRARIES}
 	${APRUTIL_LIBRARIES}
+	${LIBGIT2_LIBRARIES}
 	${LUA_LIBRARIES}
 	${SVN_LIBRARIES}
 	${ZIP_LIBRARIES}

@@ -42,15 +42,15 @@ void touchDirectory(std::string const & Path)
 // This only needs to be called if the library user want to do writing to the pool
 void StoreT::init()
 {
-	auto Now = std::chrono::high_resolution_clock::now();
-	auto Ns = std::chrono::duration_cast<std::chrono::nanoseconds>(Now.time_since_epoch());
-	mEngine.seed(Ns.count());
+	std::random_device Device;
+	mEngine.seed(Device());
 
 	touchDirectory(mRoot);
 	touchDirectory(mRoot + "/temp");
 	touchDirectory(mRoot + "/pool");
 	touchDirectory(mRoot + "/packages");
 	touchDirectory(mRoot + "/last");
+	touchDirectory(mRoot + "/last-git");
 	touchDirectory(mRoot + "/builds");
 
 	for (std::size_t I = 0; I < 16; ++I)
@@ -122,6 +122,16 @@ std::string StoreT::getLastPath(std::string const & Prefix) const
 	std::string Path;
 	Path += mRoot;
 	Path += "/last/";
+	Path += Prefix;
+	Path += ".gz";
+	return Path;
+}
+
+std::string StoreT::getLastGitPath(std::string const & Prefix) const
+{
+	std::string Path;
+	Path += mRoot;
+	Path += "/last-git/";
 	Path += Prefix;
 	Path += ".gz";
 	return Path;

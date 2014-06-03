@@ -53,12 +53,14 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 	std::string const StableString{"STABLE"};
 	std::string const VersionString{"VERSION{"};
 
-	if (Log.size() >= StableString.size() &&
+	if (
+		Log.size() >= StableString.size() &&
 		std::equal(StableString.begin(), StableString.end(), Log.begin()))
 	{
 		return {"stable", "stable-" + RevisionString, true};
 	}
-	else if (Log.size() >= VersionString.size() &&
+	else if (
+		Log.size() >= VersionString.size() &&
 		std::equal(VersionString.begin(), VersionString.end(), Log.begin()))
 	{
 		auto EndPos = Log.find('}', 9);
@@ -70,12 +72,14 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 
 
 //helper function, removes prefix from string if exists
-static std::string removePrefix(const std::string& str, const std::string& prefix) {
-	assert(!str.empty());
-	if (!prefix.empty() && (str.find(prefix) == 0)) { //FIXME: ugly hack, this should be used in all functions
-		return str.substr(prefix.length());
+static std::string removePrefix(std::string const & Str, std::string const & Prefix) {
+	assert(!Str.empty());
+	// FIXME: ugly hack, this should be used in all functions
+	if (!Prefix.empty() && (Str.find(Prefix) == 0))
+	{
+		return Str.substr(Prefix.length());
 	}
-	return str;
+	return Str;
 }
 
 #ifdef _WIN32
@@ -84,40 +88,41 @@ static std::string removePrefix(const std::string& str, const std::string& prefi
 	static const char sep = '/';
 #endif
 
-//remove sep at the end of path if exist
-static std::string cleanPath(const std::string& path)
+// Remove sep at the end of path if exist
+static std::string cleanPath(std::string const & Path)
 {
-	if (path[path.size()-1] == sep) { // make path1 without ending sep
-		return path.substr(0, path.size()-1);
+	// make path1 without ending sep
+	if (Path[Path.size()-1] == sep)
+	{
+		return Path.substr(0, Path.size() - 1);
 	}
-	return path;
+	return Path;
 }
 
-//joins two paths respecting slashes to avoid duplicate slashes
-static std::string joinPath(const std::string& path1, const std::string& path2)
+// Joins two paths respecting slashes to avoid duplicate slashes
+static std::string joinPath(std::string const & A, std::string const & B)
 {
-	if (cleanPath(path2).empty())
-		return cleanPath(path1);
-	std::string res = cleanPath(path1);
-	res += sep;
-	res += cleanPath(path2);
-	return res;
+	if (cleanPath(B).empty()) return cleanPath(A);
+	std::string Res = cleanPath(A);
+	Res += sep;
+	Res += cleanPath(B);
+	return Res;
 }
 
 
 void buildSvn(
-	const std::string& SvnUrl,
-	const std::string& ArchiveRoot, //relative path to the "root" of the ssd (where modinfo.lua is stored)
-	const std::string& ModinfoFilename, //filename of modinfo.lua (could be mapinfo.lua)
-	const std::string& StorePath,
-	const std::string& RevisionString,
-	const std::string& Prefix)
+	std::string const & SvnUrl,
+	std::string const & ArchiveRoot, //relative path to the "root" of the ssd (where modinfo.lua is stored)
+	std::string const & ModinfoFilename, //filename of modinfo.lua (could be mapinfo.lua)
+	std::string const & StorePath,
+	std::string const & RevisionString,
+	std::string const & Prefix)
 {
 	SvnT Svn;
 
 	// Absolute url of the archive's root
-	const std::string AbsArchiveRoot = joinPath(SvnUrl, ArchiveRoot);
-	const std::string AbsModinfoPath = joinPath(AbsArchiveRoot, ModinfoFilename);
+	std::string const AbsArchiveRoot = joinPath(SvnUrl, ArchiveRoot);
+	std::string const AbsModinfoPath = joinPath(AbsArchiveRoot, ModinfoFilename);
 
 	// Parse commit message for the type of commit
 	svn_revnum_t RevisionNum = std::stoi(RevisionString);
@@ -141,15 +146,19 @@ void buildSvn(
 	// Load the last proccessed revision
 	auto Last = LastT::load(Store, Prefix);
 	PoolArchiveT Archive{Store};
-	if ((Last.RevisionNum > 0) && (RevisionNum > Last.RevisionNum))  {
+	if ((Last.RevisionNum > 0) && (RevisionNum > Last.RevisionNum))
+	{
 		std::cout << "Performing incremental an update from " << Last.RevisionNum << " to " << RevisionNum << "\n";
 		Archive.load(Last.Digest);
-	} else {
+	}
+	else
+	{
 		Last.RevisionNum = 0;
 		std::cout << "Unable to perform incremental an update\n";
 	}
 	std::string SourceDiff = AbsArchiveRoot;
-	if (Last.RevisionNum == 0) {
+	if (Last.RevisionNum == 0)
+	{
 		SourceDiff = SvnUrl;
 	}
 
@@ -163,27 +172,37 @@ void buildSvn(
 			File.write(Data, Length);
 		});
 		auto FileEntry = File.close();
-		const std::string relpath = removePrefix(Diff->path, ArchiveRoot + '/');
-		Archive.add( relpath , FileEntry);
+		std::string const Relpath = removePrefix(Diff->path, ArchiveRoot + '/');
+		Archive.add(Relpath, FileEntry);
 	};
 
 	// Ask svn for a diff from the last proccessed version (or 0 if none exists)
-	Svn.summarize(SourceDiff, Last.RevisionNum, AbsArchiveRoot, RevisionNum,
+	Svn.summarize(
+		SourceDiff, Last.RevisionNum, AbsArchiveRoot, RevisionNum,
 		[&](svn_client_diff_summarize_t const * Diff)
 	{
-		if (Diff->summarize_kind == svn_client_diff_summarize_kind_added && Diff->node_kind == svn_node_file) {
+		if (Diff->summarize_kind == svn_client_diff_summarize_kind_added && Diff->node_kind == svn_node_file)
+		{
 			std::cout << "A\t" << Diff->path << "\n";
 			add(Diff);
-		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_modified && Diff->node_kind == svn_node_file) {
+		}
+		else if (Diff->summarize_kind == svn_client_diff_summarize_kind_modified && Diff->node_kind == svn_node_file)
+		{
 			std::cout << "M\t" << Diff->path << "\n";
 			add(Diff);
-		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_file) {
+		}
+		else if (Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_file)
+		{
 			std::cout << "D\t" << Diff->path << "\n";
 			Archive.remove(Diff->path);
-		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_dir) {
+		}
+		else if (Diff->summarize_kind == svn_client_diff_summarize_kind_deleted && Diff->node_kind == svn_node_dir)
+		{
 			std::cout << "D\t" << Diff->path << "\n";
 			Archive.removePrefix(Diff->path);
-		} else if ( Diff->summarize_kind == svn_client_diff_summarize_kind_normal && Diff->node_kind == svn_node_file) {
+		}
+		else if (Diff->summarize_kind == svn_client_diff_summarize_kind_normal && Diff->node_kind == svn_node_file)
+		{
 			if (!Diff->prop_changed)
 			{
 				std::cout << "P\t" << Diff->path << "\n";
@@ -207,9 +226,9 @@ void buildSvn(
 	auto ArchiveEntry = Archive.save();
 	VersionsT Versions{Store};
 	Versions.load();
-	const std::string Tag = Prefix + ':' + CommitInfo.Branch;
+	std::string const Tag = Prefix + ':' + CommitInfo.Branch;
 	Versions.add(Tag, ArchiveEntry);
-	const std::string Tag2 = Prefix + ":revision:" + RevisionString;
+	std::string const Tag2 = Prefix + ":revision:" + RevisionString;
 	Versions.add(Tag2, ArchiveEntry);
 	Versions.save();
 

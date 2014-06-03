@@ -5,6 +5,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/"
 
 find_package (APR REQUIRED)
 find_package (Lua51 REQUIRED)
+find_package (LibGit2 REQUIRED)
 find_package (LibSVN REQUIRED)
 find_package (ZLIB REQUIRED)
 find_package (Zip REQUIRED)
@@ -12,6 +13,7 @@ find_package (Zip REQUIRED)
 include_directories (
 	${APR_INCLUDE_DIR}
 	${APRUTIL_INCLUDE_DIR}
+	${LIBGIT2_INCLUDE_DIR}
 	${LUA_INCLUDE_DIR}
 	${SVN_INCLUDE_DIR}
 	${ZIP_INCLUDE_DIR}
@@ -20,7 +22,7 @@ include_directories (
 )
 
 set (standard "-std=c++0x")
-set (warning "-pedantic -Wall -Wextra -Wshadow")
+set (warning "-pedantic -Wall -Wextra -Wshadow -Wno-unused-variable")
 set (debug "-ggdb")
 set (release "-DNDEBUG -O3 -flto")
 set (symbol "-fno-rtti -fdata-sections -ffunction-sections -fvisibility=hidden")

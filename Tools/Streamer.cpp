@@ -24,7 +24,7 @@ struct StreamEntryT
 	std::size_t Size;
 };
 
-void stream(std::string StorePath, std::string Hexed)
+void stream(std::string const & StorePath, std::string const & Hexed)
 {
 	// Read bit array
 	auto File = gzdopen(fileno(stdin), "rb");
@@ -100,12 +100,13 @@ int main(int argc, char const * const * argv, char const * const * env)
 	auto DocumentRoot = getenv("DOCUMENT_ROOT");
 	auto QueryString = getenv("QUERY_STRING");
 
-	if ( DocumentRoot == nullptr ) {
+	if (DocumentRoot == nullptr)
+	{
 		std::cerr << "DOCUMENT_ROOT not set\n";
 		return 1;
 	}
 
-	if ( QueryString == nullptr )
+	if (QueryString == nullptr)
 	{
 		std::cerr << "QUERY_STRING isn't set\n";
 		return 1;

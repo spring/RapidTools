@@ -23,6 +23,7 @@ class StoreT
 	std::string getVersionsPath() const;
 	std::string getDigestPath() const;
 	std::string getLastPath(std::string const & Prefix) const;
+	std::string getLastGitPath(std::string const & Prefix) const;
 	std::string getBuildPath(std::string const & Prefix, std::string Version);
 };
 
