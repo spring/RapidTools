@@ -24,7 +24,7 @@ set (standard "-std=c++0x")
 set (warning "-pedantic -Wall -Wextra -Wshadow -Wno-unused-variable")
 set (debug "-ggdb")
 set (release "-DNDEBUG -O3 -flto")
-set (symbol "-fno-rtti -fdata-sections -ffunction-sections -fvisibility=hidden")
+set (symbol "-fno-rtti -fdata-sections -ffunction-sections")
 set (linker_symbol "-Wl,--gc-sections")
 
 set (CMAKE_CXX_FLAGS "${standard} ${warning}")
