@@ -22,9 +22,9 @@ add_library (Rapid
 	ZipFile.cpp)
 
 target_link_libraries (Rapid
+	git2
 	${APR_LIBRARIES}
 	${APRUTIL_LIBRARIES}
-	${LIBGIT2_LIBRARIES}
 	${LUA_LIBRARIES}
 	${SVN_LIBRARIES}
 	${ZIP_LIBRARIES}

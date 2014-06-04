@@ -5,15 +5,14 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/"
 
 find_package (APR REQUIRED)
 find_package (Lua51 REQUIRED)
-find_package (LibGit2 REQUIRED)
 find_package (LibSVN REQUIRED)
 find_package (ZLIB REQUIRED)
 find_package (Zip REQUIRED)
 
 include_directories (
+	External/libgit2/include
 	${APR_INCLUDE_DIR}
 	${APRUTIL_INCLUDE_DIR}
-	${LIBGIT2_INCLUDE_DIR}
 	${LUA_INCLUDE_DIR}
 	${SVN_INCLUDE_DIR}
 	${ZIP_INCLUDE_DIR}
@@ -35,5 +34,6 @@ set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${linker_symbol}")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${release} ${symbol} ${debug}")
 set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${linker_symbol}")
 
+add_subdirectory (External/libgit2)
 add_subdirectory (Rapid)
 add_subdirectory (Tools)

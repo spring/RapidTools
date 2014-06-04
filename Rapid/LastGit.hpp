@@ -5,8 +5,6 @@
 
 #include <array>
 
-#include <svn_client.h>
-
 namespace Rapid {
 
 struct LastGitT
