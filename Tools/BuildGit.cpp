@@ -40,6 +40,35 @@ void check_lg2(int error, const std::string& message, const std::string& extra =
 	throw std::runtime_error("git error");
 }
 
+/**
+	returns the first commit hash of a repo
+*/
+std::string get_root(git_repository * repo)
+{
+	git_oid oid;
+	git_revwalk *walk;
+	git_commit *wcommit;
+
+	git_revwalk_new(&walk, repo);
+	git_revwalk_sorting(walk, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE);
+	git_revwalk_push_head(walk);
+	while ((git_revwalk_next(&oid, walk)) == 0) {
+		check_lg2(git_commit_lookup(&wcommit, repo, &oid), "git_commit_lookup");
+
+/*		auto cmsg  = git_commit_message(wcommit);
+		auto cauth = git_commit_author(wcommit);
+		printf("%s (%s)\n", cmsg, cauth->email);
+*/
+		git_revwalk_free(walk);
+		char out[41];
+		out[40] = '\0';
+		git_oid_fmt(out, git_commit_id(wcommit));
+		std::string res(out);
+		git_commit_free(wcommit);
+		return res;
+	}
+	return "";
+}
 
 // Replace all instances of $VERSION in a string by calling a functor with substrings
 template<typename FunctorT>
@@ -139,7 +168,8 @@ void buildGit(
 	if (!Option)
 	{
 		std::cout << "Unable to perform incremental an update\n";
-		convertTreeishToTree(&SourceTree, Repo, "3bd5f3a6020ce4d79fdc9f0bca6936b859216993");
+		std::string root = get_root(Repo) + ":" + ModRoot;
+		convertTreeishToTree(&SourceTree, Repo, root);
 	}
 	else
 	{
@@ -156,17 +186,14 @@ void buildGit(
 			GitHash <<
 			"\n";
 
-		SourceTreeish += ':';
-		SourceTreeish += ModRoot;
+		SourceTreeish += ':' + ModRoot;
 		convertTreeishToTree(&SourceTree, Repo, SourceTreeish.data());
 	}
 	auto && SourceGuard = makeScopeGuard([&] { git_tree_free(SourceTree); });
 
 	git_tree * DestTree;
-	std::string DestTreeish;
-	DestTreeish += GitHash;
-	DestTreeish += ':';
-	DestTreeish += ModRoot;
+	const std::string DestTreeish = GitHash + ":" + ModRoot;
+
 	convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
 	auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
 
