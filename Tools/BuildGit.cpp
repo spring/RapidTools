@@ -96,31 +96,31 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 	return {"test", "test-" + RevisionString, false};
 }
 
-void convertTreeishToTree(git_tree * * Tree, git_repository * Repo, char const * Treeish)
+void convertTreeishToTree(git_tree** Tree, git_repository* Repo, const std::string& Treeish)
 {
 	git_object * Object;
-	check_lg2(git_revparse_single(&Object, Repo, Treeish), "git_revparse_single");
+	check_lg2(git_revparse_single(&Object, Repo, Treeish.c_str()), "git_revparse_single", Treeish);
 	auto && ObjectGuard = makeScopeGuard([&] { git_object_free(Object); });
 	check_lg2(git_object_peel(reinterpret_cast<git_object * *>(Tree), Object, GIT_OBJ_TREE), "git_object_peel");
 }
 
 void buildGit(
-	char const * GitPath,
-	char const * ModRoot,
-	char const * Modinfo,
-	char const * StorePath,
-	char const * GitHash,
-	char const * Prefix)
+	const std::string& GitPath,
+	const std::string& ModRoot,
+	const std::string& Modinfo,
+	const std::string& StorePath,
+	const std::string& GitHash,
+	const std::string& Prefix)
 {
 	check_lg2(git_threads_init(), "git_threads_init()");
 	auto && ThreadsGuard = makeScopeGuard([&] { git_threads_shutdown(); });
 
 	git_repository * Repo;
-	check_lg2(git_repository_open_ext(&Repo, GitPath, 0, nullptr), "git_repository_open_ext");
+	check_lg2(git_repository_open_ext(&Repo, GitPath.c_str(), 0, nullptr), "git_repository_open_ext");
 	auto && RepoGuard = makeScopeGuard([&] { git_repository_free(Repo); });
 
 	git_oid DestOid;
-	check_lg2(git_oid_fromstr(&DestOid, GitHash), "git_oid_fromstr");
+	check_lg2(git_oid_fromstr(&DestOid, GitHash.c_str()), "git_oid_fromstr");
 
 	git_commit * Commit;
 	check_lg2(git_commit_lookup(&Commit, Repo, &DestOid), "git_commit_lookup");
@@ -222,7 +222,7 @@ void buildGit(
 	}
 
 	git_tree_entry * TreeEntry;
-	check_lg2(git_tree_entry_bypath(&TreeEntry, DestTree, Modinfo), "git_tree_entry_bypath");
+	check_lg2(git_tree_entry_bypath(&TreeEntry, DestTree, Modinfo.c_str()), "git_tree_entry_bypath");
 	git_blob * Blob;
 	check_lg2(git_blob_lookup(&Blob, Repo, git_tree_entry_id(TreeEntry)), "git_blob_lookup");
 	auto && BlobGuard = makeScopeGuard([&] { git_blob_free(Blob); });
@@ -252,7 +252,7 @@ void buildGit(
 	Versions.save();
 
 	LastGitT Last;
-	Hex::decode(GitHash, Last.Hex.data(), 20);
+	Hex::decode(GitHash.c_str(), Last.Hex.data(), 20);
 	Last.Digest = ArchiveEntry.Digest;
 	LastGitT::save(Last, Store, Prefix);
 
