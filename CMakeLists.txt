@@ -34,6 +34,8 @@ set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${linker_symbol}")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${release} ${symbol} ${debug}")
 set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${linker_symbol}")
 
+set(BUILD_CLAR OFF CACHE BOOL "" FORCE)
 add_subdirectory (External/libgit2)
+
 add_subdirectory (Rapid)
 add_subdirectory (Tools)
