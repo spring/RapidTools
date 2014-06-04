@@ -168,7 +168,7 @@ void buildGit(
 	if (!Option)
 	{
 		std::cout << "Unable to perform incremental an update\n";
-		std::string root = get_root(Repo) + ":" + ModRoot;
+		const std::string root = get_root(Repo) + ":" + ModRoot;
 		convertTreeishToTree(&SourceTree, Repo, root);
 	}
 	else
