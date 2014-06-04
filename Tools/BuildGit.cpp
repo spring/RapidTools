@@ -180,9 +180,9 @@ void buildGit(
 		Hex::encode(&SourceTreeish[0], Last.Hex.data(), 20);
 
 		std::cout <<
-			"Performing incremental an update from " <<
+			"Performing incremental update: " <<
 			SourceTreeish.data() <<
-			" to " <<
+			"..." <<
 			GitHash <<
 			"\n";
 
