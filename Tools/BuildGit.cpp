@@ -268,6 +268,14 @@ void buildGit(
 
 }
 
+const std::string fixRoot(const std::string& root){
+	if ((root == ".") || (root == "/")) {
+		return "";
+	}
+	return root;
+}
+
+
 int main(int argc, char const * const * argv)
 {
 	umask(0002);
@@ -283,7 +291,7 @@ int main(int argc, char const * const * argv)
 	{
 		buildGit(
 			argv[1],
-			argv[2],
+			fixRoot(argv[2]),
 			argv[3],
 			argv[4],
 			argv[5],
