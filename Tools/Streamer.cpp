@@ -9,9 +9,13 @@
 #include <string>
 #include <stdexcept>
 #include <cstdio>
+#include <ctime>
 
-#include <sys/types.h>
+#include <fcntl.h>
+#include <sys/sendfile.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <zlib.h>
 
 namespace {
@@ -24,7 +28,9 @@ struct StreamEntryT
 	std::size_t Size;
 };
 
-void stream(std::string const & StorePath, std::string const & Hexed)
+void stream(
+	std::string const & StorePath, std::string const & Hexed,
+	std::string const & ServerProtocol, std::string const & ServerSoftware)
 {
 	// Read bit array
 	auto File = gzdopen(fileno(stdin), "rb");
@@ -65,27 +71,31 @@ void stream(std::string const & StorePath, std::string const & Hexed)
 		TotalSize += 4;
 	});
 
+	// Format current date according to RFC 1123
+	auto Time = std::time(nullptr);
+	char Date[128];
+	auto DateSize = std::strftime(Date, sizeof(Date), "%a, %d %b %Y %H:%M:%S GMT", std::gmtime(&Time));
+
 	// Repond to request
-	std::cout << "Content-Type: application/octet-stream\n";
-	std::cout << "Content-Transfer-Encoding: binary\n";
-	std::cout << "Content-Length: " << TotalSize << '\n';
-	std::cout << '\n';
+	std::cout << ServerProtocol << " 200 OK\r\n";
+	std::cout << "Date: "; std::cout.write(Date, DateSize) << "\r\n";
+	std::cout << "Server: " << ServerSoftware << "\r\n";
+	std::cout << "Content-Transfer-Encoding: binary\r\n";
+	std::cout << "Content-Length: " << TotalSize << "\r\n";
+	std::cout << "Content-Type: application/octet-stream\r\n";
+	std::cout << "\r\n";
+	std::cout.flush();
 
 	for (auto & Entry: Entries)
 	{
 		auto Path = Store.getPoolPath(Entry.File.Digest);
+		auto In = open(Path.c_str(), O_RDONLY);
 
-		std::ifstream In{Path};
 		std::uint8_t Bytes[4];
 		Marshal::packLittle(Entry.Size, Bytes);
 		std::cout.write(reinterpret_cast<char *>(Bytes), 4);
-
-		while (true)
-		{
-			In.read(Buffer, 4096);
-			std::cout.write(Buffer, In.gcount());
-			if (!In) break;
-		}
+		std::cout.flush();
+		sendfile(STDOUT_FILENO, In, 0, Entry.Size);
 	}
 }
 
@@ -99,6 +109,8 @@ int main(int argc, char const * const * argv, char const * const * env)
 
 	auto DocumentRoot = getenv("DOCUMENT_ROOT");
 	auto QueryString = getenv("QUERY_STRING");
+	auto ServerProtocol = getenv("SERVER_PROTOCOL");
+	auto ServerSoftware = getenv("SERVER_SOFTWARE");
 
 	if (DocumentRoot == nullptr)
 	{
@@ -112,9 +124,21 @@ int main(int argc, char const * const * argv, char const * const * env)
 		return 1;
 	}
 
+	if (ServerProtocol == nullptr)
+	{
+		std::cerr << "SERVER_PROTOCOL not set\n";
+		return 1;
+	}
+
+	if (ServerSoftware == nullptr)
+	{
+		std::cerr << "SERVER_SOFTWARE not set\n";
+		return 1;
+	}
+
 	try
 	{
-		stream(DocumentRoot, QueryString);
+		stream(DocumentRoot, QueryString, ServerProtocol, ServerSoftware);
 	}
 	catch (std::exception const & Exception)
 	{
