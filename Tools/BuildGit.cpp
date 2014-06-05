@@ -20,54 +20,28 @@ namespace {
 
 using namespace Rapid;
 
-void check_lg2(int error, const std::string& message, const std::string& extra = "")
+void checkRet(int Error, std::string const & Message, std::string const & Extra = "")
 {
-	const git_error *lg2err;
-	const char *lg2msg = "", *lg2spacer = "";
+	git_error const * lg2err;
+	char const * lg2msg = "", *lg2spacer = "";
 
-	if (!error)
-		return;
+	if (!Error) return;
 
-	if ((lg2err = giterr_last()) != NULL && lg2err->message != NULL) {
+	if ((lg2err = giterr_last()) != nullptr && lg2err->message != nullptr)
+	{
 		lg2msg = lg2err->message;
 		lg2spacer = " - ";
 	}
 
-	if (!extra.empty())
-		fprintf(stderr, "%s '%s' [%d]%s%s\n", message.c_str(), extra.c_str(), error, lg2spacer, lg2msg);
-	else
-		fprintf(stderr, "%s [%d]%s%s\n", message.c_str(), error, lg2spacer, lg2msg);
-	throw std::runtime_error("git error");
-}
-
-/**
-	returns the first commit hash of a repo
-*/
-std::string get_root(git_repository * repo)
-{
-	git_oid oid;
-	git_revwalk *walk;
-	git_commit *wcommit;
-
-	git_revwalk_new(&walk, repo);
-	git_revwalk_sorting(walk, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE);
-	git_revwalk_push_head(walk);
-	while ((git_revwalk_next(&oid, walk)) == 0) {
-		check_lg2(git_commit_lookup(&wcommit, repo, &oid), "git_commit_lookup");
-
-/*		auto cmsg  = git_commit_message(wcommit);
-		auto cauth = git_commit_author(wcommit);
-		printf("%s (%s)\n", cmsg, cauth->email);
-*/
-		git_revwalk_free(walk);
-		char out[41];
-		out[40] = '\0';
-		git_oid_fmt(out, git_commit_id(wcommit));
-		std::string res(out);
-		git_commit_free(wcommit);
-		return res;
+	if (!Extra.empty())
+	{
+		fprintf(stderr, "%s '%s' [%d]%s%s\n", Message.c_str(), Extra.c_str(), Error, lg2spacer, lg2msg);
 	}
-	return "";
+	else
+	{
+		fprintf(stderr, "%s [%d]%s%s\n", Message.c_str(), Error, lg2spacer, lg2msg);
+	}
+	throw std::runtime_error("git error");
 }
 
 // Replace all instances of $VERSION in a string by calling a functor with substrings
@@ -125,34 +99,34 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 	return {"test", "test-" + RevisionString, false};
 }
 
-void convertTreeishToTree(git_tree** Tree, git_repository* Repo, const std::string& Treeish)
+void convertTreeishToTree(git_tree** Tree, git_repository* Repo, std::string const & Treeish)
 {
 	git_object * Object;
-	check_lg2(git_revparse_single(&Object, Repo, Treeish.c_str()), "git_revparse_single", Treeish);
+	checkRet(git_revparse_single(&Object, Repo, Treeish.c_str()), "git_revparse_single", Treeish);
 	auto && ObjectGuard = makeScopeGuard([&] { git_object_free(Object); });
-	check_lg2(git_object_peel(reinterpret_cast<git_object * *>(Tree), Object, GIT_OBJ_TREE), "git_object_peel");
+	checkRet(git_object_peel(reinterpret_cast<git_object * *>(Tree), Object, GIT_OBJ_TREE), "git_object_peel");
 }
 
 void buildGit(
-	const std::string& GitPath,
-	const std::string& ModRoot,
-	const std::string& Modinfo,
-	const std::string& StorePath,
-	const std::string& GitHash,
-	const std::string& Prefix)
+	std::string const & GitPath,
+	std::string const & ModRoot,
+	std::string const & Modinfo,
+	std::string const & StorePath,
+	std::string const & GitHash,
+	std::string const & Prefix)
 {
-	check_lg2(git_threads_init(), "git_threads_init()");
+	checkRet(git_threads_init(), "git_threads_init()");
 	auto && ThreadsGuard = makeScopeGuard([&] { git_threads_shutdown(); });
 
 	git_repository * Repo;
-	check_lg2(git_repository_open_ext(&Repo, GitPath.c_str(), 0, nullptr), "git_repository_open_ext");
+	checkRet(git_repository_open_ext(&Repo, GitPath.c_str(), 0, nullptr), "git_repository_open_ext");
 	auto && RepoGuard = makeScopeGuard([&] { git_repository_free(Repo); });
 
 	git_oid DestOid;
-	check_lg2(git_oid_fromstr(&DestOid, GitHash.c_str()), "git_oid_fromstr");
+	checkRet(git_oid_fromstr(&DestOid, GitHash.c_str()), "git_oid_fromstr");
 
 	git_commit * Commit;
-	check_lg2(git_commit_lookup(&Commit, Repo, &DestOid), "git_commit_lookup");
+	checkRet(git_commit_lookup(&Commit, Repo, &DestOid), "git_commit_lookup");
 	auto && CommitGuard = makeScopeGuard([&] { git_commit_free(Commit); });
 	auto CommitInfo = extractVersion(git_commit_message_raw(Commit), GitHash);
 
@@ -163,13 +137,20 @@ void buildGit(
 	// Load the last proccessed revision
 	auto Option = LastGitT::load(Store, Prefix);
 
+	git_tree * DestTree;
+	const std::string DestTreeish = GitHash + ":" + ModRoot;
+	convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
+	auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
+
 	PoolArchiveT Archive{Store};
-	git_tree * SourceTree;
+	git_diff * Diff;
+	git_diff_options Options;
+	git_diff_options_init(&Options, GIT_DIFF_OPTIONS_VERSION);
+
 	if (!Option)
 	{
 		std::cout << "Unable to perform incremental an update\n";
-		const std::string root = get_root(Repo) + ":" + ModRoot;
-		convertTreeishToTree(&SourceTree, Repo, root);
+		checkRet(git_diff_tree_to_tree(&Diff, Repo, nullptr, DestTree, &Options), "git_diff_tree_to_tree");
 	}
 	else
 	{
@@ -186,21 +167,14 @@ void buildGit(
 			GitHash <<
 			"\n";
 
+		git_tree * SourceTree;
 		SourceTreeish += ':' + ModRoot;
 		convertTreeishToTree(&SourceTree, Repo, SourceTreeish.data());
+		auto && SourceGuard = makeScopeGuard([&] { git_tree_free(SourceTree); });
+
+		checkRet(git_diff_tree_to_tree(&Diff, Repo, SourceTree, DestTree, &Options), "git_diff_tree_to_tree");
 	}
-	auto && SourceGuard = makeScopeGuard([&] { git_tree_free(SourceTree); });
 
-	git_tree * DestTree;
-	const std::string DestTreeish = GitHash + ":" + ModRoot;
-
-	convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
-	auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
-
-	git_diff * Diff;
-	git_diff_options Options;
-	git_diff_options_init(&Options, GIT_DIFF_OPTIONS_VERSION);
-	check_lg2(git_diff_tree_to_tree(&Diff, Repo, SourceTree, DestTree, &Options), "git_diff_tree_to_tree");
 	auto && DiffGuard = makeScopeGuard([&] { git_diff_free(Diff); });
 
 	// Helper function used for adds/modifications
@@ -208,7 +182,7 @@ void buildGit(
 	{
 		PoolFileT File{Store};
 		git_blob * Blob;
-		check_lg2(git_blob_lookup(&Blob, Repo, &Delta->new_file.oid), "git_blob_lookup");
+		checkRet(git_blob_lookup(&Blob, Repo, &Delta->new_file.oid), "git_blob_lookup");
 		auto && BlobGuard = makeScopeGuard([&] { git_blob_free(Blob); });
 		auto Size = git_blob_rawsize(Blob);
 		auto Pointer = static_cast<char const *>(git_blob_rawcontent(Blob));
@@ -249,9 +223,9 @@ void buildGit(
 	}
 
 	git_tree_entry * TreeEntry;
-	check_lg2(git_tree_entry_bypath(&TreeEntry, DestTree, Modinfo.c_str()), "git_tree_entry_bypath");
+	checkRet(git_tree_entry_bypath(&TreeEntry, DestTree, Modinfo.c_str()), "git_tree_entry_bypath");
 	git_blob * Blob;
-	check_lg2(git_blob_lookup(&Blob, Repo, git_tree_entry_id(TreeEntry)), "git_blob_lookup");
+	checkRet(git_blob_lookup(&Blob, Repo, git_tree_entry_id(TreeEntry)), "git_blob_lookup");
 	auto && BlobGuard = makeScopeGuard([&] { git_blob_free(Blob); });
 	auto Size = git_blob_rawsize(Blob);
 	auto Pointer = static_cast<char const *>(git_blob_rawcontent(Blob));
@@ -295,7 +269,7 @@ void buildGit(
 
 }
 
-const std::string fixRoot(const std::string& root){
+const std::string fixRoot(std::string const & root){
 	if ((root == ".") || (root == "/")) {
 		return "";
 	}
