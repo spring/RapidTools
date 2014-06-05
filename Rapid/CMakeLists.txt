@@ -15,6 +15,7 @@ add_library (Rapid
 	PoolFile.cpp
 	ScopeGuard.cpp
 	Store.cpp
+	String.cpp
 	Svn.cpp
 	TempFile.cpp
 	Versions.cpp

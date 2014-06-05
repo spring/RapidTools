@@ -1,8 +1,9 @@
 #include "Store.hpp"
 
 #include "Hex.hpp"
+#include "String.hpp"
 
-#include <chrono>
+#include <array>
 #include <stdexcept>
 #include <string>
 
@@ -45,24 +46,26 @@ void StoreT::init()
 	std::random_device Device;
 	mEngine.seed(Device());
 
-	touchDirectory(mRoot);
-	touchDirectory(mRoot + "/temp");
-	touchDirectory(mRoot + "/pool");
-	touchDirectory(mRoot + "/packages");
-	touchDirectory(mRoot + "/last");
-	touchDirectory(mRoot + "/last-git");
-	touchDirectory(mRoot + "/builds");
+	std::string Scratch = concat(mRoot, "/");
+	std::size_t RootSize = Scratch.size();
 
+	touchDirectory(Scratch);
+	touchDirectory(concatAt(Scratch, RootSize, "temp"));
+	touchDirectory(concatAt(Scratch, RootSize, "pool"));
+	touchDirectory(concatAt(Scratch, RootSize, "packages"));
+	touchDirectory(concatAt(Scratch, RootSize, "last"));
+	touchDirectory(concatAt(Scratch, RootSize, "last-git"));
+	touchDirectory(concatAt(Scratch, RootSize, "builds"));
+
+	concatAt(Scratch, RootSize, "pool/  ");
+	std::size_t PoolSize = Scratch.size();
 	for (std::size_t I = 0; I < 16; ++I)
 	{
+		Scratch[PoolSize - 2] = Hex::EncodeTable[I];
 		for (std::size_t J = 0; J < 16; ++J)
 		{
-			std::string Path;
-			Path += mRoot;
-			Path += "/pool/";
-			Path += Hex::EncodeTable[I];
-			Path += Hex::EncodeTable[J];
-			touchDirectory(Path);
+			Scratch[PoolSize - 1] = Hex::EncodeTable[J];
+			touchDirectory(Scratch);
 		}
 	}
 }
@@ -71,73 +74,43 @@ std::string StoreT::getTempPath()
 {
 	unsigned char Random[8];
 	for (std::size_t Index = 0; Index < 8; ++Index) Random[Index] = mDistribution(mEngine);
-	char Hexed[16];
-	Hex::encode(Hexed, Random, 8);
-
-	std::string Path;
-	Path += mRoot;
-	Path += "/temp/";
-	Path.append(Hexed, Hexed + 16);
-	return Path;
+	std::array<char, 16> Hexed;
+	Hex::encode(Hexed.data(), Random, 8);
+	return concat(mRoot, "/temp/", Hexed);
 }
 
 std::string StoreT::getSdpPath(DigestT const & Digest) const
 {
-	char Hexed[32];
-	Hex::encode(Hexed, Digest.Buffer, 16);
-
-	std::string Path;
-	Path += mRoot;
-	Path += "/packages/";
-	Path.append(Hexed, Hexed + 32);
-	Path += ".sdp";
-	return Path;
+	std::array<char, 32> Hexed;
+	Hex::encode(Hexed.data(), Digest.Buffer, 16);
+	return concat(mRoot, "/packages/", Hexed, ".sdp");
 }
 
 std::string StoreT::getPoolPath(DigestT const & Digest) const
 {
-	char Hexed[32];
-	Hex::encode(Hexed, Digest.Buffer, 16);
-
-	std::string Path;
-	Path += mRoot;
-	Path += "/pool/";
-	Path.append(Hexed, Hexed + 2);
-	Path += '/';
-	Path.append(Hexed + 2, Hexed + 32);
-	Path += ".gz";
-	return Path;
+	std::array<char, 2> Prefix;
+	std::array<char, 30> Hexed;
+	Hex::encode(Prefix.data(), Digest.Buffer, 1);
+	Hex::encode(Hexed.data(), Digest.Buffer + 1, 15);
+	return concat(mRoot, "/pool/", Prefix, "/", Hexed, ".gz");
 }
 
 std::string StoreT::getVersionsPath() const
 {
-	std::string Path;
-	Path += mRoot;
-	Path += "/versions.gz";
-	return Path;
+	return concat(mRoot, "/versions.gz");
 }
 
 std::string StoreT::getLastPath(std::string const & Prefix) const
 {
-	std::string Path;
-	Path += mRoot;
-	Path += "/last/";
-	Path += Prefix;
-	Path += ".gz";
-	return Path;
+	return concat(mRoot, "/last/", Prefix, ".gz");
 }
 
 std::string StoreT::getLastGitPath(std::string const & Prefix) const
 {
-	std::string Path;
-	Path += mRoot;
-	Path += "/last-git/";
-	Path += Prefix;
-	Path += ".gz";
-	return Path;
+	return concat(mRoot, "/last-git/", Prefix, ".gz");
 }
 
-std::string StoreT::getBuildPath(std::string const & Prefix, std::string Version)
+std::string StoreT::getBuildPath(std::string const & Prefix, std::string Version) const
 {
 	// Replace spaces with underscores
 	for (auto & Char : Version)
@@ -145,21 +118,12 @@ std::string StoreT::getBuildPath(std::string const & Prefix, std::string Version
 		if (Char == ' ') Char = '_';
 	}
 
-	std::string Path;
-	Path += mRoot;
-	Path += "/builds/";
-	Path += Prefix;
-	Path += '-';
-	Path += Version;
-	Path += ".sdz";
-	return Path;
+	return concat(mRoot, "/builds/", Prefix, "-", Version, ".sdz");
 }
 
-std::string StoreT::getDigestPath() const {
-	std::string Path;
-	Path += mRoot;
-	Path += "/versions.digest";
-	return Path;
+std::string StoreT::getDigestPath() const
+{
+	return concat(mRoot, "/versions.digest");
 }
 
 }

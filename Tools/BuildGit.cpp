@@ -4,6 +4,7 @@
 #include "Rapid/PoolFile.hpp"
 #include "Rapid/ScopeGuard.hpp"
 #include "Rapid/Store.hpp"
+#include "Rapid/String.hpp"
 #include "Rapid/Versions.hpp"
 
 #include <algorithm>
@@ -20,7 +21,7 @@ namespace {
 
 using namespace Rapid;
 
-void checkRet(int Error, std::string const & Message, std::string const & Extra = "")
+void checkRet(int Error, char const * Message, std::string const & Extra = "")
 {
 	git_error const * LogToError;
 	char const * LogToErrorMessage = "";
@@ -37,11 +38,11 @@ void checkRet(int Error, std::string const & Message, std::string const & Extra 
 	std::string Concat;
 	if (!Extra.empty())
 	{
-		Concat = Message + " '" + Extra + "' [" + std::to_string(Error) + "]" + LogToErrorSpacer + LogToErrorMessage;
+		Concat = concat(Message, " '", Extra, "' [", std::to_string(Error), "]", LogToErrorSpacer, LogToErrorMessage);
 	}
 	else
 	{
-		Concat = Message + " [" + std::to_string(Error) + "]" + LogToErrorSpacer + LogToErrorMessage;
+		Concat = concat(Message, " [", std::to_string(Error), "]", LogToErrorSpacer, LogToErrorMessage);
 	}
 	throw std::runtime_error{Concat};
 }
@@ -86,7 +87,7 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 		Log.size() >= StableString.size() &&
 		std::equal(StableString.begin(), StableString.end(), Log.begin()))
 	{
-		return {"stable", "stable-" + RevisionString, true};
+		return {"stable", concat("stable-", RevisionString), true};
 	}
 	else if (
 		Log.size() >= VersionString.size() &&
@@ -98,7 +99,7 @@ CommitInfoT extractVersion(std::string const & Log, std::string const & Revision
 		if (EndPos != Last) return {"stable", {First, EndPos}, true};
 	}
 
-	return {"test", "test-" + RevisionString, false};
+	return {"test", concat("test-", RevisionString), false};
 }
 
 void convertTreeishToTree(git_tree** Tree, git_repository* Repo, std::string const & Treeish)
@@ -136,11 +137,8 @@ void buildGit(
 	StoreT Store{StorePath};
 	Store.init();
 
-	// Load the last proccessed revision
-	auto Option = LastGitT::load(Store, Prefix);
-
 	git_tree * DestTree;
-	const std::string DestTreeish = GitHash + ":" + ModRoot;
+	std::string const DestTreeish = concat(GitHash, ":", ModRoot);
 	convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
 	auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
 
@@ -148,6 +146,9 @@ void buildGit(
 	git_diff * Diff;
 	git_diff_options Options;
 	git_diff_options_init(&Options, GIT_DIFF_OPTIONS_VERSION);
+
+	// Load the last proccessed revision
+	auto Option = LastGitT::load(Store, Prefix);
 
 	if (!Option)
 	{
@@ -170,7 +171,7 @@ void buildGit(
 			"\n";
 
 		git_tree * SourceTree;
-		SourceTreeish += ':' + ModRoot;
+		concatAppend(SourceTreeish, ":", ModRoot);
 		convertTreeishToTree(&SourceTree, Repo, SourceTreeish.data());
 		auto && SourceGuard = makeScopeGuard([&] { git_tree_free(SourceTree); });
 
@@ -242,15 +243,9 @@ void buildGit(
 
 	VersionsT Versions{Store};
 	Versions.load();
-	std::string Tag;
-	Tag += Prefix;
-	Tag += ':';
-	Tag += CommitInfo.Branch;
+	std::string const Tag = concat(Prefix, ":", CommitInfo.Branch);
+	std::string const Tag2 = concat(Prefix, ":git:", GitHash);
 	Versions.add(Tag, ArchiveEntry);
-	std::string Tag2;
-	Tag2 += Prefix;
-	Tag2 += ":git:";
-	Tag2 += GitHash;
 	Versions.add(Tag2, ArchiveEntry);
 	Versions.save();
 
