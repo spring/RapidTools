@@ -22,26 +22,28 @@ using namespace Rapid;
 
 void checkRet(int Error, std::string const & Message, std::string const & Extra = "")
 {
-	git_error const * lg2err;
-	char const * lg2msg = "", *lg2spacer = "";
+	git_error const * LogToError;
+	char const * LogToErrorMessage = "";
+	char const * LogToErrorSpacer = "";
 
 	if (!Error) return;
 
-	if ((lg2err = giterr_last()) != nullptr && lg2err->message != nullptr)
+	if ((LogToError = giterr_last()) != nullptr && LogToError->message != nullptr)
 	{
-		lg2msg = lg2err->message;
-		lg2spacer = " - ";
+		LogToErrorMessage = LogToError->message;
+		LogToErrorSpacer = " - ";
 	}
 
+	std::string Concat;
 	if (!Extra.empty())
 	{
-		fprintf(stderr, "%s '%s' [%d]%s%s\n", Message.c_str(), Extra.c_str(), Error, lg2spacer, lg2msg);
+		Concat = Message + " '" + Extra + "' [" + std::to_string(Error) + "]" + LogToErrorSpacer + LogToErrorMessage;
 	}
 	else
 	{
-		fprintf(stderr, "%s [%d]%s%s\n", Message.c_str(), Error, lg2spacer, lg2msg);
+		Concat = Message + " [" + std::to_string(Error) + "]" + LogToErrorSpacer + LogToErrorMessage;
 	}
-	throw std::runtime_error("git error");
+	throw std::runtime_error{Concat};
 }
 
 // Replace all instances of $VERSION in a string by calling a functor with substrings
