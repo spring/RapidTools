@@ -7,8 +7,6 @@
 
 namespace Rapid {
 
-namespace {
-
 inline
 std::size_t getLength(std::string const & String)
 {
@@ -19,6 +17,12 @@ inline
 std::size_t getLength(char const * String)
 {
 	return std::strlen(String);
+}
+
+inline
+std::size_t getLength(char)
+{
+	return 1;
 }
 
 template<std::size_t Size>
@@ -57,10 +61,16 @@ void append(std::string & String, std::string const & Data)
 	String.append(Data);
 }
 
+inline
+void append(std::string & String, char Data)
+{
+	String.push_back(Data);
+}
+
 template<std::size_t Size>
 void append(std::string & String, std::array<char, Size> const & Data)
 {
-	String.append(Data.data(), Data.data() + Size);
+	String.append(Data.begin(), Data.end());
 }
 
 template<typename ... ArgsT>
@@ -72,8 +82,6 @@ void concatHelper(std::string & String, T const & Object, ArgsT const & ... Args
 {
 	append(String, Object);
 	concatHelper(String, Args ...);
-}
-
 }
 
 template<typename ... ArgsT>

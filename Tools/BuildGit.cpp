@@ -42,7 +42,7 @@ void checkRet(int Error, char const * Message, std::string const & Extra = "")
 	}
 	else
 	{
-		Concat = concat(Message, " [", std::to_string(Error), "]", LogToErrorSpacer, LogToErrorMessage);
+		Concat = concat(Message, " [", std::to_string(Error), ']', LogToErrorSpacer, LogToErrorMessage);
 	}
 	throw std::runtime_error{Concat};
 }
@@ -138,7 +138,7 @@ void buildGit(
 	Store.init();
 
 	git_tree * DestTree;
-	std::string const DestTreeish = concat(GitHash, ":", ModRoot);
+	std::string const DestTreeish = concat(GitHash, ':', ModRoot);
 	convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
 	auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
 
@@ -171,7 +171,7 @@ void buildGit(
 			"\n";
 
 		git_tree * SourceTree;
-		concatAppend(SourceTreeish, ":", ModRoot);
+		concatAppend(SourceTreeish, ':', ModRoot);
 		convertTreeishToTree(&SourceTree, Repo, SourceTreeish.data());
 		auto && SourceGuard = makeScopeGuard([&] { git_tree_free(SourceTree); });
 
@@ -243,7 +243,7 @@ void buildGit(
 
 	VersionsT Versions{Store};
 	Versions.load();
-	std::string const Tag = concat(Prefix, ":", CommitInfo.Branch);
+	std::string const Tag = concat(Prefix, ':', CommitInfo.Branch);
 	std::string const Tag2 = concat(Prefix, ":git:", GitHash);
 	Versions.add(Tag, ArchiveEntry);
 	Versions.add(Tag2, ArchiveEntry);

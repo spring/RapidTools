@@ -46,18 +46,18 @@ void StoreT::init()
 	std::random_device Device;
 	mEngine.seed(Device());
 
-	std::string Scratch = concat(mRoot, "/");
+	std::string Scratch = mRoot;
 	std::size_t RootSize = Scratch.size();
 
 	touchDirectory(Scratch);
-	touchDirectory(concatAt(Scratch, RootSize, "temp"));
-	touchDirectory(concatAt(Scratch, RootSize, "pool"));
-	touchDirectory(concatAt(Scratch, RootSize, "packages"));
-	touchDirectory(concatAt(Scratch, RootSize, "last"));
-	touchDirectory(concatAt(Scratch, RootSize, "last-git"));
-	touchDirectory(concatAt(Scratch, RootSize, "builds"));
+	touchDirectory(concatAt(Scratch, RootSize, "/temp"));
+	touchDirectory(concatAt(Scratch, RootSize, "/pool"));
+	touchDirectory(concatAt(Scratch, RootSize, "/packages"));
+	touchDirectory(concatAt(Scratch, RootSize, "/last"));
+	touchDirectory(concatAt(Scratch, RootSize, "/last-git"));
+	touchDirectory(concatAt(Scratch, RootSize, "/builds"));
 
-	concatAt(Scratch, RootSize, "pool/  ");
+	concatAt(Scratch, RootSize, "/pool/  ");
 	std::size_t PoolSize = Scratch.size();
 	for (std::size_t I = 0; I < 16; ++I)
 	{
@@ -92,7 +92,7 @@ std::string StoreT::getPoolPath(DigestT const & Digest) const
 	std::array<char, 30> Hexed;
 	Hex::encode(Prefix.data(), Digest.Buffer, 1);
 	Hex::encode(Hexed.data(), Digest.Buffer + 1, 15);
-	return concat(mRoot, "/pool/", Prefix, "/", Hexed, ".gz");
+	return concat(mRoot, "/pool/", Prefix, '/', Hexed, ".gz");
 }
 
 std::string StoreT::getVersionsPath() const
@@ -118,7 +118,7 @@ std::string StoreT::getBuildPath(std::string const & Prefix, std::string Version
 		if (Char == ' ') Char = '_';
 	}
 
-	return concat(mRoot, "/builds/", Prefix, "-", Version, ".sdz");
+	return concat(mRoot, "/builds/", Prefix, '-', Version, ".sdz");
 }
 
 std::string StoreT::getDigestPath() const
