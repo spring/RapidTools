@@ -87,8 +87,6 @@ void concatHelper(std::string & String, T const & Object, ArgsT const & ... Args
 template<typename ... ArgsT>
 std::string & concatAppend(std::string & String, ArgsT const & ... Args)
 {
-	auto Length = getLength(Args ...);
-	String.reserve(String.size() + Length);
 	concatHelper(String, Args ...);
 	return String;
 }
@@ -97,8 +95,6 @@ template<typename ... ArgsT>
 std::string & concatReplace(std::string & String, ArgsT const & ... Args)
 {
 	String.clear();
-	auto Length = getLength(Args ...);
-	String.reserve(Length);
 	concatHelper(String, Args ...);
 	return String;
 }
@@ -107,8 +103,6 @@ template<typename ... ArgsT>
 std::string & concatAt(std::string & String, std::size_t Index, ArgsT const & ... Args)
 {
 	String.resize(Index);
-	auto Length = getLength(Args ...);
-	String.reserve(Index + Length);
 	concatHelper(String, Args ...);
 	return String;
 }
@@ -117,7 +111,9 @@ template<typename ... ArgsT>
 std::string concat(ArgsT const & ... Args)
 {
 	std::string String;
-	concatAppend(String, Args ...);
+	auto Length = getLength(Args ...);
+	String.reserve(Length);
+	concatHelper(String, Args ...);
 	return String;
 }
 
