@@ -7,7 +7,7 @@ for DOMAIN in $DOMAINS; do
 
 TAG=$(basename $DOMAIN)
 
-# repo / tag is changed to fix order of files
+# 001- is prefixed for defined order of files
 FILE=/etc/apache2/sites-enabled/001-$TAG-repo.springrts.com
 echo "Creating $FILE"
 cat >$FILE << EOF
