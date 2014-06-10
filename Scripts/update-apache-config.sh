@@ -1,7 +1,10 @@
 #!/bin/bash
 
 
-DOMAINS=$(find /home/packages/git -maxdepth 1 -mindepth 1 -type d)
+GITROOT=/home/packages/git
+WWWROOT=/home/packages/www
+STREAMER_BIN=/home/packages/bin/Streamer
+DOMAINS=$(find $GITROOT -maxdepth 1 -mindepth 1 -type d)
 
 for DOMAIN in $DOMAINS; do
 
@@ -18,7 +21,7 @@ cat >$FILE << EOF
     ServerAdmin chris@springrts.com
     ErrorLog /var/log/apache2/$TAG-repo.springrts.com-error.log
     CustomLog /var/log/apache2/$TAG-repo.springrts.com-access.log combined
-    DocumentRoot /home/packages/www/$TAG
+    DocumentRoot $WWWROOT/$TAG
 
     <Location />
         RewriteEngine on
@@ -28,5 +31,7 @@ cat >$FILE << EOF
     </Location>
 </VirtualHost>
 EOF
+
+ln -svf $STREAMER_BIN $WWWROOT/$TAG/streamer.cgi
 
 done
