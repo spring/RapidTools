@@ -13,6 +13,7 @@ class GzipT
 {
 	private:
 	gzFile mFile;
+	std::string mPath;
 
 	public:
 	GzipT();

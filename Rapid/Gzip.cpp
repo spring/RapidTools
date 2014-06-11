@@ -12,14 +12,16 @@ GzipT::GzipT()
 GzipT::GzipT(std::string const & Path, char const * Mode)
 {
 	mFile = gzopen(Path.c_str(), Mode);
-	if (mFile == nullptr) throw std::runtime_error{"Error opening gzip"};
+	mPath = Path;
+	if (mFile == nullptr) throw std::runtime_error{"Error opening gzip:" + mPath};
 }
 
 void GzipT::open(std::string const & Path, char const * Mode)
 {
-	if (mFile == nullptr) throw std::runtime_error{"Gzip already open"};
+	if (mFile == nullptr) throw std::runtime_error{"Gzip already open:" + mPath};
 	mFile = gzopen(Path.c_str(), Mode);
-	if (mFile == nullptr) throw std::runtime_error{"Error opening gzip"};
+	mPath = Path;
+	if (mFile == nullptr) throw std::runtime_error{"Error opening gzip:" + mPath};
 }
 
 GzipT::~GzipT()
@@ -36,14 +38,14 @@ void GzipT::close()
 unsigned GzipT::read(void * Buffer, unsigned Length)
 {
 	auto ReadBytes = gzread(mFile, static_cast<char *>(Buffer), Length);
-	if (ReadBytes == -1) throw std::runtime_error{"Error reading gzip"};
+	if (ReadBytes == -1) throw std::runtime_error{"Error reading gzip:" + mPath};
 	return static_cast<unsigned>(ReadBytes);
 }
 
 void GzipT::readExpected(void * Buffer, unsigned Length)
 {
 	auto ReadBytes = read(Buffer, Length);
-	if (ReadBytes != Length) throw std::runtime_error{"Error reading gzip"};
+	if (ReadBytes != Length) throw std::runtime_error{"Error reading gzip:" + mPath};
 }
 
 // o/` Hey, I just met you, and this is crazy, but here's my buffer, so read me maybe o/`
@@ -61,13 +63,13 @@ void GzipT::write(void const * Buffer, unsigned Length)
 	if (Length==0)
 		return;
 	auto Error = gzwrite(mFile, Buffer, Length);
-	if (Error == 0) throw std::runtime_error{"Error writing gzip buffer"};
+	if (Error == 0) throw std::runtime_error{"Error writing gzip buffer:" + mPath};
 }
 
 void GzipT::write(char Char)
 {
 	auto Error = gzputc(mFile, Char);
-	if (Error == 0) throw std::runtime_error{"Error writing gzip char"};
+	if (Error == 0) throw std::runtime_error{"Error writing gzip char" + mPath};
 }
 
 std::string GzipT::readFile(std::string const & Path)
