@@ -107,14 +107,17 @@ int main(int argc, char const * const * argv, char const * const * env)
 	atexit(apr_terminate);
 	umask(0002);
 
-	auto DocumentRoot = getenv("DOCUMENT_ROOT");
 	auto QueryString = getenv("QUERY_STRING");
 	auto ServerProtocol = getenv("SERVER_PROTOCOL");
 	auto ServerSoftware = getenv("SERVER_SOFTWARE");
+	const static int size = 1024;
+	char buf[size];
 
-	if (DocumentRoot == nullptr)
+	getcwd(buf, size);
+	const std::string DocumentRoot(buf, size);
+	if (DocumentRoot.empty())
 	{
-		std::cerr << "DOCUMENT_ROOT not set\n";
+		std::cerr << "Couldn't get cwd\n";
 		return 1;
 	}
 

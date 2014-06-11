@@ -28,7 +28,7 @@ void TempFileT::commit(std::string const & Path)
 {
 	mOut.close();
 	auto Error = rename(mPath.c_str(), Path.c_str());
-	if (Error != 0) throw std::runtime_error{"Error renaming file"};
+	if (Error != 0) throw std::runtime_error{"Error renaming file" + mPath + " to " + Path};
 	mPath.clear();
 
 }
