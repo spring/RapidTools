@@ -118,36 +118,64 @@ void buildGit(
 	std::string const & GitHash,
 	std::string const & Prefix)
 {
+	// Initialize libgit2
 	checkRet(git_threads_init(), "git_threads_init()");
 	auto && ThreadsGuard = makeScopeGuard([&] { git_threads_shutdown(); });
 
+	// Load the git repo
 	git_repository * Repo;
 	checkRet(git_repository_open_ext(&Repo, GitPath.c_str(), 0, nullptr), "git_repository_open_ext");
 	auto && RepoGuard = makeScopeGuard([&] { git_repository_free(Repo); });
 
+	// Lookup destination oid
 	git_oid DestOid;
 	checkRet(git_oid_fromstr(&DestOid, GitHash.c_str()), "git_oid_fromstr");
 
+	// Make a short hash
+	std::array<char, 7> ShortHash;
+	std::copy(GitHash.data(), GitHash.data() + 7, ShortHash.data());
+
+	// Find the commit count
+	git_revwalk * Walker;
+	checkRet(git_revwalk_new(&Walker, Repo), "git_revwalk_new");
+	auto && WalkerGuard = makeScopeGuard([&] { git_revwalk_free(Walker); });
+	checkRet(git_revwalk_push(Walker, &DestOid), "git_revwalk_push");
+
+	std::size_t CommitCount = 0;
+	while (true)
+	{
+		git_oid WalkerOid;
+		int Ret = git_revwalk_next(&WalkerOid, Walker);
+		if (Ret == GIT_ITEROVER) break;
+		checkRet(Ret, "git_revwalk_next");
+		++CommitCount;
+	}
+
+	// Extract the commit type from the commit message
 	git_commit * Commit;
 	checkRet(git_commit_lookup(&Commit, Repo, &DestOid), "git_commit_lookup");
 	auto && CommitGuard = makeScopeGuard([&] { git_commit_free(Commit); });
-	auto CommitInfo = extractVersion(git_commit_message_raw(Commit), GitHash);
+	std::size_t AncestorCount = git_commit_parentcount(Commit);
+	std::string TestVersion = concat(std::to_string(CommitCount), '-', ShortHash);
+	auto CommitInfo = extractVersion(git_commit_message_raw(Commit), TestVersion);
 
 	// Initialize the store
 	StoreT Store{StorePath};
 	Store.init();
 
+	// Load the destination commit tree
 	git_tree * DestTree;
 	std::string const DestTreeish = concat(GitHash, ':', ModRoot);
 	convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
 	auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
 
+	// Prepare to perform diff
 	PoolArchiveT Archive{Store};
 	git_diff * Diff;
 	git_diff_options Options;
 	git_diff_options_init(&Options, GIT_DIFF_OPTIONS_VERSION);
 
-	// Load the last proccessed revision
+	// Diff against the last processed commit tree, or the empty tree if there is none
 	auto Option = LastGitT::load(Store, Prefix);
 
 	if (!Option)
@@ -194,6 +222,7 @@ void buildGit(
 		Archive.add(Delta->new_file.path, FileEntry);
 	};
 
+	// Update the archive with this diff
 	for (std::size_t I = 0, E = git_diff_num_deltas(Diff); I != E; ++I)
 	{
 		auto Delta = git_diff_get_delta(Diff, I);
@@ -225,6 +254,7 @@ void buildGit(
 		}
 	}
 
+	// Update modinfo.lua with $VERSION replacement
 	git_tree_entry * TreeEntry;
 	checkRet(git_tree_entry_bypath(&TreeEntry, DestTree, Modinfo.c_str()), "git_tree_entry_bypath");
 	git_blob * Blob;
@@ -241,6 +271,7 @@ void buildGit(
 	Archive.add(Modinfo, FileEntry);
 	auto ArchiveEntry = Archive.save();
 
+	// Add tags and save versions.gz
 	VersionsT Versions{Store};
 	Versions.load();
 	std::string const Tag = concat(Prefix, ':', CommitInfo.Branch);
@@ -249,6 +280,7 @@ void buildGit(
 	Versions.add(Tag2, ArchiveEntry);
 	Versions.save();
 
+	// Save info for next incremental run
 	LastGitT Last;
 	Hex::decode(GitHash.c_str(), Last.Hex.data(), 20);
 	Last.Digest = ArchiveEntry.Digest;
@@ -266,11 +298,10 @@ void buildGit(
 
 }
 
-const std::string fixRoot(std::string const & root){
-	if ((root == ".") || (root == "/")) {
-		return "";
-	}
-	return root;
+std::string fixRoot(std::string const & root)
+{
+	if ((root == ".") || (root == "/")) return "";
+	else return root;
 }
 
 

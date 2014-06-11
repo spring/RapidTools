@@ -74,20 +74,20 @@ void append(std::string & String, std::array<char, Size> const & Data)
 }
 
 template<typename ... ArgsT>
-void concatHelper(std::string &)
+void appendHelper(std::string &)
 {}
 
 template<typename T, typename ... ArgsT>
-void concatHelper(std::string & String, T const & Object, ArgsT const & ... Args)
+void appendHelper(std::string & String, T const & Object, ArgsT const & ... Args)
 {
 	append(String, Object);
-	concatHelper(String, Args ...);
+	appendHelper(String, Args ...);
 }
 
 template<typename ... ArgsT>
 std::string & concatAppend(std::string & String, ArgsT const & ... Args)
 {
-	concatHelper(String, Args ...);
+	appendHelper(String, Args ...);
 	return String;
 }
 
@@ -95,7 +95,7 @@ template<typename ... ArgsT>
 std::string & concatReplace(std::string & String, ArgsT const & ... Args)
 {
 	String.clear();
-	concatHelper(String, Args ...);
+	appendHelper(String, Args ...);
 	return String;
 }
 
@@ -103,7 +103,7 @@ template<typename ... ArgsT>
 std::string & concatAt(std::string & String, std::size_t Index, ArgsT const & ... Args)
 {
 	String.resize(Index);
-	concatHelper(String, Args ...);
+	appendHelper(String, Args ...);
 	return String;
 }
 
@@ -113,7 +113,7 @@ std::string concat(ArgsT const & ... Args)
 	std::string String;
 	auto Length = getLength(Args ...);
 	String.reserve(Length);
-	concatHelper(String, Args ...);
+	appendHelper(String, Args ...);
 	return String;
 }
 
