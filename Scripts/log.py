@@ -49,7 +49,7 @@ def createTemplate(str):
 template = createTemplate("%s commited revision %s:\n%s" %(author, revision, log))
 
 
-buf = 'LOGIN ' + username + ' ' + password + ' 0 * TASClient 0.33\t0\tcl sp\n'
+buf = 'LOGIN ' + username + ' ' + password + ' 0 * TASClient 0.33\t0\tcl sp p\n'
 for channel in channels:
 	buf += template.replace("$CHANNEL$", channel)
 buf += "EXIT Thanks for using rapid! https://github.com/spring/RapidTools\n"

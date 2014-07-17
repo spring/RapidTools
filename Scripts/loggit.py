@@ -20,7 +20,7 @@ channels = set(sys.argv[1:])
 template = "JOIN $CHANNEL$\n"
 for line in sys.stdin:
 	template += "SAY $CHANNEL$ " + line + "\n"
-buf = 'LOGIN ' + username + ' ' + password + ' 0 * TASClient 0.33\t0\tcl sp\n'
+buf = 'LOGIN ' + username + ' ' + password + ' 0 * TASClient 0.33\t0\tcl sp p\n'
 for channel in channels:
 	buf += template.replace("$CHANNEL$", channel)
 buf += "EXIT Thanks for using rapid! https://github.com/spring/RapidTools\n"
