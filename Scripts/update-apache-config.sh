@@ -20,7 +20,8 @@ cat >$FILE << EOF
     ServerName $TAG.repo.springrts.com
     ServerAdmin chris@springrts.com
     ErrorLog /var/log/apache2/$TAG.repo.springrts.com-error.log
-    CustomLog /var/log/apache2/$TAG.repo.springrts.com-access.log combined
+#    CustomLog /var/log/apache2/$TAG.repo.springrts.com-access.log combined
+    CustomLog /dev/null combined
     DocumentRoot $WWWROOT/$TAG
 
     <Location />
