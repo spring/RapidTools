@@ -36,5 +36,6 @@ EOF
 mkdir -p $WWWROOT/$TAG
 chown packages:packages $WWWROOT/*
 ln -svf $STREAMER_BIN $WWWROOT/$TAG/streamer.cgi
+ln -svf $STREAMER_BIN $WWWROOT/$TAG/nph-streamer2.cgi
 
 done
