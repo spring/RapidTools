@@ -33,6 +33,8 @@ cat >$FILE << EOF
 </VirtualHost>
 EOF
 
+mkdir -p $WWWROOT/$TAG
+chown packages:packages $WWWROOT/*
 ln -svf $STREAMER_BIN $WWWROOT/$TAG/streamer.cgi
 
 done
