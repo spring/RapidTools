@@ -12,7 +12,9 @@ CMakeLists.txt.user
 /Tools/BuildSvn
 /Tools/MakeZip
 /Tools/Streamer
+/Tools/BuildGit
 /Rapid/libRapid.a
+/Rapid/libRapid.so
 # python cache files
 /Scripts/*.pyc
 # codeblocks project file
