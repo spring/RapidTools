@@ -46,7 +46,7 @@ def createTemplate(str):
 		template += "SAY $CHANNEL$ " + line + "\n"
 	return template
 
-template = createTemplate("%s commited revision %s:\n%s" %(author, revision, log))
+template = createTemplate("%s commited revision %s (svn repo used, please 'update' to git!):\n%s" %(author, revision, log))
 
 
 buf = 'LOGIN ' + username + ' ' + password + ' 0 * TASClient 0.33\t0\tcl sp p\n'
