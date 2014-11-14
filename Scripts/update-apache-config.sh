@@ -21,6 +21,11 @@ For details see the <a href="http://springrts.com/wiki/Rapid">rapid wiki page</a
 </html>
 EOF
 
+cat > $WWWROOT/$TAG/robots.txt << EOF
+User-agent: *
+Disallow: /
+EOF
+
 # 001- is prefixed for defined order of files
 FILE=/etc/apache2/sites-enabled/001-$TAG.repo.springrts.com.conf
 
