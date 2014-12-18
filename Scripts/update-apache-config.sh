@@ -50,6 +50,9 @@ cat >$FILE << EOF
         AddHandler cgi-script .cgi
         Options +ExecCGI
     </Location>
+    <Location /builds>
+        Options +Indexes
+    </Location>
 </VirtualHost>
 EOF
 
