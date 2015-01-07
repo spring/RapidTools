@@ -21,7 +21,6 @@ class StoreT
 	std::string getSdpPath(DigestT const & Digest) const;
 	std::string getPoolPath(DigestT const & Digest) const;
 	std::string getVersionsPath() const;
-	std::string getDigestPath() const;
 	std::string getLastPath(std::string const & Prefix) const;
 	std::string getLastGitPath(std::string const & Prefix) const;
 	std::string getBuildPath(std::string const & Prefix, std::string Version) const;

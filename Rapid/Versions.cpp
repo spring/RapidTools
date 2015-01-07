@@ -92,24 +92,6 @@ void VersionsT::load()
 	}
 }
 
-void VersionsT::updateDigest()
-{
-	auto Path = mStore.getVersionsPath();
-	auto digestPath = mStore.getDigestPath();
-	char Buffer[4096];
-	std::ifstream In{Path};
-	Md5T md5;
-	while (In) {
-		In.read(Buffer, 4096);
-		md5.update(Buffer, In.gcount());
-	}
-	In.close();
-	DigestT md5sum = md5.final();
-	std::ofstream Out{digestPath};
-	Out.write((const char*)&md5sum.Buffer[0], sizeof(md5sum.Buffer));
-	Out.close();
-}
-
 void VersionsT::save()
 {
 	auto Path = mStore.getVersionsPath();
@@ -141,7 +123,6 @@ void VersionsT::save()
 		Out.write('\n');
 	}
 	Out.close();
-	updateDigest();
 }
 
 void VersionsT::add(std::string const & Tag, ArchiveEntryT const & Entry)

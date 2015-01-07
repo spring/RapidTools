@@ -121,9 +121,4 @@ std::string StoreT::getBuildPath(std::string const & Prefix, std::string Version
 	return concat(mRoot, "/builds/", Prefix, '-', Version, ".sdz");
 }
 
-std::string StoreT::getDigestPath() const
-{
-	return concat(mRoot, "/versions.digest");
-}
-
 }

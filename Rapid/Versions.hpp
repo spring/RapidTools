@@ -2,7 +2,6 @@
 
 #include "ArchiveEntry.hpp"
 #include "Gzip.hpp"
-#include "Md5.hpp"
 #include "Store.hpp"
 
 #include <map>
@@ -23,7 +22,6 @@ class VersionsT
 	void load();
 	void save();
 	void add(std::string const & Tag, ArchiveEntryT const & Entry);
-	void updateDigest();
 	ArchiveEntryT const & findTag(std::string const & Tag);
 };
 
