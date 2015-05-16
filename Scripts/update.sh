@@ -24,7 +24,6 @@ for REPO in $REPOS; do
 	git fetch
 	LOCAL=$(git rev-parse HEAD)
 	REMOTE=$(git rev-parse @{u})
-	LOG=$REPO/updatelog.txt
 	if [ "$LOCAL" != "$REMOTE" ]; then
 		(
 		TAG=$(basename $REPO)
@@ -34,7 +33,7 @@ for REPO in $REPOS; do
 		git reset --hard origin/master
 		~/bin/BuildGit "$REPO" "$MODROOT" "$MODINFO" "$PACKAGES/$TAG" "$REMOTE" "$TAG"
 		git log -1 --pretty=format:"%an commited %h: %s" | ~/bin/loggit.py "$TAG"
-		) | 2>&1 > $REPO/log.txt
+		) | 2>&1 > $PACKAGES/log.txt
 	fi
 done
 
