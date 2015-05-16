@@ -17,6 +17,8 @@ cat > $WWWROOT/$TAG/index.html << EOF
 </head>
 <body>
 For details see the <a href="http://springrts.com/wiki/Rapid">rapid wiki page</a>.
+<br/>
+See the <a href="log.txt">log file</a> for possible errors.
 </body>
 </html>
 EOF
