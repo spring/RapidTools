@@ -6,7 +6,7 @@ renice 20 -p $$ >/dev/null
 MAXLOAD=3
 LOAD=$(uptime | egrep -o -e "load average: [0-9]*"|cut -b 15-)
 if [ $LOAD -ge $MAXLOAD ]; then
-	echo current load $LOAD is higher than maxload $MAXLOAD, aborting svn sync
+	echo current load $LOAD is higher than maxload $MAXLOAD, aborting sync
 	exit
 fi
 
@@ -32,8 +32,8 @@ for REPO in $REPOS; do
 		git checkout master
 		git reset --hard origin/master
 		~/bin/BuildGit "$REPO" "$MODROOT" "$MODINFO" "$PACKAGES/$TAG" "$REMOTE" "$TAG"
-		git log -1 --pretty=format:"%an commited %h: %s" | ~/bin/loggit.py "$TAG"
 		) &> $PACKAGES/$TAG/log.txt
+		git log -1 --pretty=format:"%an commited %h: %s" | ~/bin/loggit.py "$TAG"
 	fi
 done
 
