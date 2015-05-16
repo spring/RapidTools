@@ -33,7 +33,7 @@ for REPO in $REPOS; do
 		git reset --hard origin/master
 		~/bin/BuildGit "$REPO" "$MODROOT" "$MODINFO" "$PACKAGES/$TAG" "$REMOTE" "$TAG"
 		git log -1 --pretty=format:"%an commited %h: %s" | ~/bin/loggit.py "$TAG"
-		) | 2>&1 > $PACKAGES/log.txt
+		) &> $PACKAGES/log.txt
 	fi
 done
 
