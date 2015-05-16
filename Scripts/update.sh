@@ -25,8 +25,8 @@ for REPO in $REPOS; do
 	LOCAL=$(git rev-parse HEAD)
 	REMOTE=$(git rev-parse @{u})
 	if [ "$LOCAL" != "$REMOTE" ]; then
-		(
 		TAG=$(basename $REPO)
+		(
 		echo Updateing $REPO
 		git pull
 		git checkout master
