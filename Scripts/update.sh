@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ionice -p $$ -c 3
 renice 20 -p $$ >/dev/null
