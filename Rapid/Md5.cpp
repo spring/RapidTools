@@ -1,22 +1,26 @@
 #include "Md5.hpp"
+#include "string.h"
+#include "md5/md5.h"
 
 namespace Rapid {
 
 Md5T::Md5T()
 {
-	apr_md5_init(&mContext);
+	MD5Init(&mContext);
 }
 
 void Md5T::update(void const * Buffer, std::size_t Length)
 {
-	apr_md5_update(&mContext, Buffer, Length);
+	MD5Update(&mContext, (unsigned char*)Buffer, Length);
 }
 
 DigestT Md5T::final()
 {
 	DigestT Digest;
-	apr_md5_final(Digest.Buffer, &mContext);
+	MD5Final(&mContext);
+	memcpy(Digest.Buffer, mContext.digest, 16);
 	return Digest;
 }
 
 }
+

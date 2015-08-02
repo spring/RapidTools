@@ -2,8 +2,6 @@
 
 #include "Store.hpp"
 
-#include <svn_client.h>
-
 namespace Rapid {
 
 struct LastT

@@ -26,8 +26,6 @@ void makeZip(std::string StorePath, std::string Tag, std::string Output)
 
 int main(int argc, char const * const * argv, char const * const * env)
 {
-	apr_app_initialize(&argc, &argv, &env);
-	atexit(apr_terminate);
 	umask(0002);
 
 	if (argc != 4)

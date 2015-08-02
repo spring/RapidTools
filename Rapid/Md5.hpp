@@ -2,7 +2,7 @@
 
 #include <cstdlib>
 
-#include <apr_md5.h>
+#include "md5/md5.h"
 
 namespace Rapid {
 
@@ -14,7 +14,7 @@ struct DigestT
 class Md5T
 {
 	private:
-	apr_md5_ctx_t mContext;
+	MD5_CTX mContext;
 
 	public:
 	Md5T();
