@@ -16,7 +16,7 @@ cat > $WWWROOT/$TAG/index.html << EOF
 	<title>spring rts repo</title>
 </head>
 <body>
-For details see the <a href="http://springrts.com/wiki/Rapid">rapid wiki page</a>.
+For details see the <a href="https://springrts.com/wiki/Rapid">rapid wiki page</a>.
 <br/>
 See the <a href="log.txt">log file</a> for possible errors.
 </body>
@@ -37,7 +37,6 @@ cat >$FILE << EOF
 #Automaticly created with $(pwd)/$0, don't edit!
 <VirtualHost *:80>
     ServerName $TAG.repo.springrts.com
-    ServerAdmin chris@springrts.com
     ErrorLog /var/log/apache2/$TAG.repo.springrts.com-error.log
     CustomLog /var/log/apache2/$TAG.repo.springrts.com-access.log combined
 #    CustomLog /dev/null combined
