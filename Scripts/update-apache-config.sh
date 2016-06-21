@@ -36,8 +36,8 @@ cat >$FILE << EOF
 
 #Automaticly created with $(pwd)/$0, don't edit!
 <VirtualHost *:80>
+    AssignUserID packages packages
     ServerName $TAG.repo.springrts.com
-    ServerAdmin chris@springrts.com
     ErrorLog /var/log/apache2/$TAG.repo.springrts.com-error.log
     CustomLog /var/log/apache2/$TAG.repo.springrts.com-access.log combined
 #    CustomLog /dev/null combined

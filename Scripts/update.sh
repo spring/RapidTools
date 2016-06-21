@@ -21,19 +21,20 @@ REPOS=$(find /home/packages/git -maxdepth 1 -mindepth 1 -type d)
 
 for REPO in $REPOS; do
 	cd $REPO
-	git fetch
-	LOCAL=$(git rev-parse HEAD)
-	REMOTE=$(git rev-parse @{u})
-	if [ "$LOCAL" != "$REMOTE" ]; then
-		TAG=$(basename $REPO)
-		(
-		echo Updateing $REPO
-		git pull
-		git checkout master
-		git reset --hard origin/master
-		~/bin/BuildGit "$REPO" "$MODROOT" "$MODINFO" "$PACKAGES/$TAG" "$REMOTE" "$TAG"
-		) &> $PACKAGES/$TAG/log.txt
-		git log -1 --pretty=format:"%an commited %h: %s" | ~/bin/loggit.py "$TAG"
+	if git fetch &>/dev/null; then
+		LOCAL=$(git rev-parse HEAD)
+		REMOTE=$(git rev-parse @{u})
+		if [ "$LOCAL" != "$REMOTE" ]; then
+			TAG=$(basename $REPO)
+			(
+			echo Updateing $REPO
+			git pull
+			git checkout master
+			git reset --hard origin/master
+			~/bin/BuildGit "$REPO" "$MODROOT" "$MODINFO" "$PACKAGES/$TAG" "$REMOTE" "$TAG"
+			) &> $PACKAGES/$TAG/log.txt
+			git log -1 --pretty=format:"%an commited %h: %s" | ~/bin/loggit.py "$TAG"
+		fi
 	fi
 done
 
