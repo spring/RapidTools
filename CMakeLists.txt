@@ -13,7 +13,7 @@ include_directories (
 	${LUA_INCLUDE_DIR}
 	${ZIP_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIR}
-	.
+	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set (standard "-std=c++0x")
