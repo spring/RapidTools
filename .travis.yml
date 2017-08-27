@@ -4,7 +4,7 @@ compiler:
 #  travis ci doesn't support c++11 (yet)
 #  - gcc
 before_script:
-  - sudo apt-get install libapr1-dev libaprutil1-dev liblua5.1-0-dev libsvn-dev libzip-dev zlib1g-dev
+  - sudo apt-get install liblua5.1-0-dev libzip-dev zlib1g-dev
   - cmake .
 script:
   - make

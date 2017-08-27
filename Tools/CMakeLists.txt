@@ -1,9 +1,6 @@
 add_executable (AddZip AddZip.cpp)
 target_link_libraries (AddZip Rapid)
 
-add_executable (BuildSvn BuildSvn.cpp)
-target_link_libraries (BuildSvn Rapid)
-
 add_executable (BuildGit BuildGit.cpp)
 target_link_libraries (BuildGit Rapid)
 
