@@ -8,13 +8,11 @@ CMakeFiles
 cmake_install.cmake
 CMakeLists.txt.user
 # executables / libs
-/Tools/AddZip
-/Tools/BuildSvn
-/Tools/MakeZip
-/Tools/Streamer
-/Tools/BuildGit
-/Rapid/libRapid.a
-/Rapid/libRapid.so
+/AddZip
+/BuildGit
+/MakeZip
+/Streamer
+/libRapid.so
 # python cache files
 /Scripts/*.pyc
 # codeblocks project file
@@ -23,4 +21,6 @@ CMakeLists.txt.user
 # ninja files
 /rules.ninja
 /build.ninja
-/
+/.ninja_deps
+/.ninja_log
+
