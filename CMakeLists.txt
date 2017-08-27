@@ -62,7 +62,6 @@ target_link_libraries (Rapid
 	${APR_LIBRARIES}
 	${APRUTIL_LIBRARIES}
 	${LUA_LIBRARIES}
-	${SVN_LIBRARIES}
 	${ZIP_LIBRARIES}
 	${ZLIB_LIBRARIES})
 
