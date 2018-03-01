@@ -32,6 +32,7 @@ for REPO in $REPOS; do
 			git checkout master
 			git reset --hard origin/master
 			~/bin/BuildGit "$REPO" "$MODROOT" "$MODINFO" "$PACKAGES/$TAG" "$REMOTE" "$TAG"
+			git submodule update --recursive --remote
 			) &> $PACKAGES/$TAG/log.txt
 			git log -1 --pretty=format:"%an commited %h: %s" | ~/bin/loggit.py "$TAG"
 		fi
