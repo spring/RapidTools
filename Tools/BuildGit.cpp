@@ -201,6 +201,7 @@ void processDiff(git_diff *Diff, StoreT& Store, PoolArchiveT& Archive, git_repos
 						Archive.remove(Delta->new_file.path);
 					} break;
 					case GIT_FILEMODE_COMMIT: {
+						std::cout << "D\t" << fullPath << " (submodule)\n";
 						Archive.removePrefix(fullPath);
 					} break;
 					default:
@@ -237,16 +238,19 @@ void processRepo(StoreT& Store, PoolArchiveT& Archive, git_repository* Repo, con
 		checkRet(git_diff_tree_to_tree(&Diff, Repo, SourceTree, DestTree, &Options), "git_diff_tree_to_tree");
 	}
 
-	SubmoduleContext submoduleContext{Store, Archive, ModRoot, pathPrefix, {}};
+	SubmoduleContext submoduleContext{Store, Archive, ModRoot, pathPrefix, SubmoduleHashes()};
 
 	processDiff(Diff, Store, Archive, Repo, submoduleContext.submoduleHashes, pathPrefix);
 
 	auto submodule_cb = [](git_submodule *sm, const char *name, void *payload)
 	{
+		const auto sc = reinterpret_cast<SubmoduleContext*>(payload);
+		if (sc->submoduleHashes.find(name) == sc->submoduleHashes.end())
+			return 0;
+
 		std::cout << "Entering submodule:\t" << name << "\n";
 		git_repository * SubmoduleRepo;
 		git_submodule_open(&SubmoduleRepo, sm);
-		const auto sc = reinterpret_cast<SubmoduleContext*>(payload);
 		const auto& hashes = sc->submoduleHashes[std::string(name)];
 		std::cout << hashes.first << " " << hashes.second << "\n";
 
