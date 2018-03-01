@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 #include <git2.h>
 #include <sys/types.h>
@@ -110,6 +111,153 @@ void convertTreeishToTree(git_tree** Tree, git_repository* Repo, std::string con
 	checkRet(git_object_peel(reinterpret_cast<git_object * *>(Tree), Object, GIT_OBJ_TREE), "git_object_peel");
 }
 
+std::string concatPrefix(const std::string& prefix, const std::string& path)
+{
+	if (prefix.empty())
+		return path;
+
+	return concat(prefix, "/", path);
+}
+
+typedef std::unordered_map<std::string, std::pair<std::string, std::string>> SubmoduleHashes;
+struct SubmoduleContext {
+	StoreT& Store;
+	PoolArchiveT& Archive;
+	const std::string& ModRoot;
+	const std::string& pathPrefix;
+	SubmoduleHashes submoduleHashes;
+};
+
+void processDiff(git_diff *Diff, StoreT& Store, PoolArchiveT& Archive, git_repository* Repo, SubmoduleHashes& submoduleHashes, const std::string pathPrefix)
+{
+	auto && DiffGuard = makeScopeGuard([&] { git_diff_free(Diff); });
+
+	// Helper function used for adds/modifications
+	auto add = [&](git_diff_delta const * Delta, const std::string& fullPath)
+	{
+		PoolFileT File{Store};
+		git_blob * Blob;
+
+		checkRet(git_blob_lookup(&Blob, Repo, &Delta->new_file.oid), "git_blob_lookup");
+		auto && BlobGuard = makeScopeGuard([&] { git_blob_free(Blob); });
+		auto Size = git_blob_rawsize(Blob);
+		auto Pointer = static_cast<char const *>(git_blob_rawcontent(Blob));
+		File.write(Pointer, Size);
+		auto FileEntry = File.close();
+		Archive.add(fullPath, FileEntry);
+	};
+
+	// Update the archive with this diff
+	for (std::size_t I = 0, E = git_diff_num_deltas(Diff); I != E; ++I)
+	{
+		auto Delta = git_diff_get_delta(Diff, I);
+		const std::string& fullPath = concatPrefix(pathPrefix, Delta->new_file.path);
+
+		switch (Delta->status) {
+			case GIT_DELTA_ADDED: {
+				switch(Delta->new_file.mode) {
+					case GIT_FILEMODE_BLOB: {
+						std::cout << "A\t" << fullPath << "\n";
+						add(Delta, fullPath);
+					} break;
+					case GIT_FILEMODE_COMMIT: {
+						char buffer[128];
+						git_oid_tostr(buffer, 128, &Delta->new_file.oid);
+						submoduleHashes[std::string(Delta->new_file.path)] = {"" , buffer};
+						std::cout << "A\t" << fullPath << " " << buffer << "\n";
+					} break;
+					default:
+						throw std::runtime_error{"Unsupported mode"};
+
+				}
+			} break;
+
+			case GIT_DELTA_MODIFIED:
+			{
+				switch(Delta->new_file.mode) {
+					case GIT_FILEMODE_BLOB: {
+						std::cout << "M\t" << fullPath << "\n";
+						add(Delta, fullPath);
+					} break;
+					case GIT_FILEMODE_COMMIT: {
+						char buffer1[128];
+						char buffer2[128];
+						git_oid_tostr(buffer1, 128, &Delta->old_file.oid);
+						git_oid_tostr(buffer2, 128, &Delta->new_file.oid);
+						submoduleHashes[std::string(Delta->new_file.path)] = {buffer1 , buffer2};
+						std::cout << "M\t" << fullPath << " " << buffer1 << " => " << buffer2 << "\n";
+					} break;
+					default:
+						throw std::runtime_error{"Unsupported mode"};
+
+				}
+			} break;
+
+			case GIT_DELTA_DELETED:
+			{
+				switch(Delta->old_file.mode) {
+					case GIT_FILEMODE_BLOB: {
+						std::cout << "D\t" << fullPath << "\n";
+						Archive.remove(Delta->new_file.path);
+					} break;
+					case GIT_FILEMODE_COMMIT: {
+						Archive.removePrefix(fullPath);
+					} break;
+					default:
+						throw std::runtime_error{"Unsupported mode"};
+
+				}
+			} break;
+
+			default: throw std::runtime_error{"Unsupported delta"};
+		}
+	}
+}
+
+void processRepo(StoreT& Store, PoolArchiveT& Archive, git_repository* Repo, const std::string& ModRoot, const std::string& oldHash, const std::string& newHash, const std::string& pathPrefix)
+{
+	// Diff against the last processed commit tree, or the empty tree if there is none
+	git_diff * Diff;
+	{
+		git_diff_options Options;
+		git_diff_options_init(&Options, GIT_DIFF_OPTIONS_VERSION);
+		git_tree * SourceTree = nullptr;
+
+		git_tree * DestTree;
+		const std::string DestTreeish = concat(newHash, ':', ModRoot);
+		convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
+		auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
+
+		auto && SourceGuard = makeScopeGuard([&] { git_tree_free(SourceTree); });
+
+		if (!oldHash.empty()) {
+			std::string SourceTreeish = concat(oldHash, ':', ModRoot);;
+			convertTreeishToTree(&SourceTree, Repo, SourceTreeish.c_str());
+		}
+		checkRet(git_diff_tree_to_tree(&Diff, Repo, SourceTree, DestTree, &Options), "git_diff_tree_to_tree");
+	}
+
+	SubmoduleContext submoduleContext{Store, Archive, ModRoot, pathPrefix, {}};
+
+	processDiff(Diff, Store, Archive, Repo, submoduleContext.submoduleHashes, pathPrefix);
+
+	auto submodule_cb = [](git_submodule *sm, const char *name, void *payload)
+	{
+		std::cout << "Entering submodule:\t" << name << "\n";
+		git_repository * SubmoduleRepo;
+		git_submodule_open(&SubmoduleRepo, sm);
+		const auto sc = reinterpret_cast<SubmoduleContext*>(payload);
+		const auto& hashes = sc->submoduleHashes[std::string(name)];
+		std::cout << hashes.first << " " << hashes.second << "\n";
+
+		processRepo(sc->Store, sc->Archive, SubmoduleRepo, sc->ModRoot, hashes.first, hashes.second, concatPrefix(sc->pathPrefix, name));
+
+		return 0;
+	};
+	git_submodule_foreach(Repo, submodule_cb, &submoduleContext);
+}
+
+
 void buildGit(
 	std::string const & GitPath,
 	std::string const & ModRoot,
@@ -168,91 +316,29 @@ void buildGit(
 	std::string const DestTreeish = concat(GitHash, ':', ModRoot);
 	convertTreeishToTree(&DestTree, Repo, DestTreeish.c_str());
 	auto && DestGuard = makeScopeGuard([&] { git_tree_free(DestTree); });
-
 	// Prepare to perform diff
 	PoolArchiveT Archive{Store};
-	git_diff * Diff;
-	git_diff_options Options;
-	git_diff_options_init(&Options, GIT_DIFF_OPTIONS_VERSION);
 
-	// Diff against the last processed commit tree, or the empty tree if there is none
 	auto Option = LastGitT::load(Store, Prefix);
+	std::string oldHash;
 
-	if (!Option)
-	{
-		std::cout << "Unable to perform incremental an update\n";
-		checkRet(git_diff_tree_to_tree(&Diff, Repo, nullptr, DestTree, &Options), "git_diff_tree_to_tree");
-	}
-	else
-	{
+	if (!Option) {
+			std::cout << "Unable to perform incremental an update\n";
+	} else {
 		auto & Last = *Option;
 		Archive.load(Last.Digest);
-		std::string SourceTreeish;
-		SourceTreeish.resize(40);
-		Hex::encode(&SourceTreeish[0], Last.Hex.data(), 20);
+		oldHash.resize(40);
+		Hex::encode(&oldHash[0], Last.Hex.data(), 20);
 
 		std::cout <<
 			"Performing incremental update: " <<
-			SourceTreeish.data() <<
+			oldHash <<
 			"..." <<
 			GitHash <<
 			"\n";
-
-		git_tree * SourceTree;
-		concatAppend(SourceTreeish, ':', ModRoot);
-		convertTreeishToTree(&SourceTree, Repo, SourceTreeish.data());
-		auto && SourceGuard = makeScopeGuard([&] { git_tree_free(SourceTree); });
-
-		checkRet(git_diff_tree_to_tree(&Diff, Repo, SourceTree, DestTree, &Options), "git_diff_tree_to_tree");
 	}
+	processRepo(Store, Archive, Repo, ModRoot, oldHash, GitHash, "");
 
-	auto && DiffGuard = makeScopeGuard([&] { git_diff_free(Diff); });
-
-	// Helper function used for adds/modifications
-	auto add = [&](git_diff_delta const * Delta)
-	{
-		PoolFileT File{Store};
-		git_blob * Blob;
-		checkRet(git_blob_lookup(&Blob, Repo, &Delta->new_file.oid), "git_blob_lookup");
-		auto && BlobGuard = makeScopeGuard([&] { git_blob_free(Blob); });
-		auto Size = git_blob_rawsize(Blob);
-		auto Pointer = static_cast<char const *>(git_blob_rawcontent(Blob));
-		File.write(Pointer, Size);
-		auto FileEntry = File.close();
-		Archive.add(Delta->new_file.path, FileEntry);
-	};
-
-	// Update the archive with this diff
-	for (std::size_t I = 0, E = git_diff_num_deltas(Diff); I != E; ++I)
-	{
-		auto Delta = git_diff_get_delta(Diff, I);
-		switch (Delta->status)
-		{
-
-		case GIT_DELTA_ADDED:
-		{
-			std::cout << "A\t" << Delta->new_file.path << "\n";
-			add(Delta);
-			break;
-		}
-
-		case GIT_DELTA_MODIFIED:
-		{
-			std::cout << "M\t" << Delta->new_file.path << "\n";
-			add(Delta);
-			break;
-		}
-
-		case GIT_DELTA_DELETED:
-		{
-			std::cout << "D\t" << Delta->new_file.path << "\n";
-			Archive.remove(Delta->new_file.path);
-			break;
-		}
-
-		default: throw std::runtime_error{"Unsupported delta"};
-		}
-	}
 
 	// Update modinfo.lua with $VERSION replacement
 	git_tree_entry * TreeEntry;
