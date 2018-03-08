@@ -31,6 +31,7 @@ for REPO in $REPOS; do
 			git pull
 			git checkout master
 			git reset --hard origin/master
+			git submodule sync --recursive
 			git submodule update --recursive --remote --init
 			~/bin/BuildGit "$REPO" "$MODROOT" "$MODINFO" "$PACKAGES/$TAG" "$REMOTE" "$TAG"
 			) &> $PACKAGES/$TAG/log.txt
