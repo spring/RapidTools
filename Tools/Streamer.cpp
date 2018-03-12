@@ -89,8 +89,8 @@ void stream(
 	for (auto & Entry: Entries)
 	{
 		auto Path = Store.getPoolPath(Entry.File.Digest);
-		auto In = open(Path.c_str(), O_RDONLY);
-
+		const int In = open(Path.c_str(), O_RDONLY);
+		if (In < 0) throw std::runtime_error{"Error opening pool file"};
 		std::uint8_t Bytes[4];
 		Marshal::packLittle(Entry.Size, Bytes);
 		std::cout.write(reinterpret_cast<char *>(Bytes), 4);
