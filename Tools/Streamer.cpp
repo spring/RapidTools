@@ -96,6 +96,7 @@ void stream(
 		std::cout.write(reinterpret_cast<char *>(Bytes), 4);
 		std::cout.flush();
 		sendfile(STDOUT_FILENO, In, 0, Entry.Size);
+		close(In);
 	}
 }
 
